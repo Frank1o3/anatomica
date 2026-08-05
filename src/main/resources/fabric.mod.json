@@ -1,0 +1,39 @@
+{
+	"schemaVersion": 1,
+	"id": "anatomica",
+	"version": "${version}",
+	"name": "Anatomica",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Frank1o3"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "BSD 3-Clause",
+	"icon": "assets/anatomica/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.frank1o3.anatomica.Anatomica"
+		],
+		"client": [
+			"com.frank1o3.anatomica.client.AnatomicaClient"
+		]
+	},
+	"mixins": [
+		"anatomica.mixins.json",
+		{
+			"config": "anatomica.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*",
+		"franklylib": ">=1.0.0"
+	}
+}
