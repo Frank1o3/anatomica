@@ -11,79 +11,69 @@ import com.frank1o3.franklylib.client.render.AttachmentPoint;
 import com.frank1o3.franklylib.client.render.FranklyAttachmentRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.client.renderer.entity.state.PlayerRenderState;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Attaches the player's configured body model, left and right side, to the
  * "body"
- * part of the player model, deformed each frame by that player's physics
- * engine(s).
+ * attachment point, deformed each frame by that player's physics engine(s).
  *
  * <p>
- * All actual mesh submission is delegated to FranklyLib's
- * {@link FranklyAttachmentRenderer} — this class's only job is resolving which
- * config/model/engine applies to a given player render state and calling into
- * FranklyLib with it. Per-tick physics simulation ({@code IPhysicsEngine#tick})
- * does
- * <b>not</b> happen here — this class only calls
- * {@code interpolate(partialTick)}
- * (via {@link BoundMeshDeformer}) once per frame. The actual {@code tick(...)}
- * calls
- * belong on a client tick event, once per tracked player per game tick — see
- * {@code AnatomicaClient} / a dedicated ticking hook.
+ * Generic over {@code S}/{@code M} the same way {@code GenderLayer} is in the
+ * mod
+ * this was forked from, so {@code AvatarRendererMixin} can pass {@code this}
+ * straight
+ * through as the {@link RenderLayerParent} without an unchecked cast to a
+ * concrete
+ * model type.
  *
  * <p>
- * <b>Verify before compiling — this file makes a few best-effort guesses about
- * your
- * exact Minecraft/Loom mappings that this project can't check without your
- * build:</b>
- * <ul>
- * <li>{@link RenderLayer#submit}'s exact parameter list (assumed here to end in
- * a
- * {@code float partialTick}) — adjust to match whatever your version's
- * {@code RenderLayer} base class actually declares.</li>
- * <li>{@link #resolveUuid(PlayerRenderState)} — assumes
- * {@code PlayerRenderState}
- * exposes the player's UUID somehow (commonly via an embedded profile field);
- * point this at whatever field/method your mappings actually expose.</li>
- * </ul>
- * The surrounding logic (config lookup, per-side attachment points, mirroring,
- * hide-in-armor check) is the part that matters and shouldn't need to change
- * once
- * those two seams are wired up correctly.
+ * Per-tick physics simulation happens in {@link BodyPhysicsTicker}, once per
+ * tracked player per game tick — this class only interpolates + submits
+ * geometry.
  */
-public final class BodyRenderLayer extends RenderLayer<PlayerRenderState, PlayerModel> {
+public final class BodyRenderLayer<S extends AvatarRenderState, M extends HumanoidModel<S>> extends RenderLayer<S, M> {
 
     private static final float SIDE_X_OFFSET = 0.045f;
-    private static final Identifier BODY_TARGET_PART_KEY = Identifier.fromNamespaceAndPath("anatomica", "body");
+    private static final String BODY_TARGET_PART = "body";
 
-    public BodyRenderLayer(RenderLayerParent<PlayerRenderState, PlayerModel> parent) {
+    // Model instances are cheap to reuse and expensive to keep reallocating:
+    // without
+    // this, resolveModel() would call factory.create() fresh every frame, defeating
+    // ModelMeshCache (keyed by instance identity) and reallocating every model's
+    // ModelVertex[] array 20+ times a second for no reason.
+    private static final Map<Identifier, IDeformableModel> MODEL_INSTANCE_CACHE = new ConcurrentHashMap<>();
+
+    public BodyRenderLayer(RenderLayerParent<S, M> parent) {
         super(parent);
     }
 
     @Override
     public void submit(PoseStack poseStack, SubmitNodeCollector renderQueue, int packedLight,
-            PlayerRenderState renderState, float partialTick) {
+            S renderState, float limbAngle, float limbDistance) {
 
-        UUID uuid = resolveUuid(renderState);
-        if (uuid == null || !EntityBodyData.has(uuid)) {
+        BodyRenderState bodyState = BodyRenderState.get(renderState);
+        if (bodyState == null || !bodyState.hasConfig) {
             return;
         }
 
+        UUID uuid = bodyState.uuid;
         BodyConfig config = EntityBodyData.get(uuid);
 
         // TODO: if (!config.showInArmor() && <renderState is wearing a chestplate>)
-        // return;
-        // Wire this up once you've confirmed how PlayerRenderState exposes equipped
-        // armor — deliberately left out rather than guessing a method name here.
+        // return; — wire this up once armor visibility is exposed on AvatarRenderState.
 
         IDeformableModel model = resolveModel(config.modelId());
         if (model == null) {
@@ -91,8 +81,8 @@ public final class BodyRenderLayer extends RenderLayer<PlayerRenderState, Player
         }
 
         ClientBodyPhysics physics = ClientBodyPhysics.get(uuid);
-        RenderType renderType = RenderType.entityCutoutNoCull(bodyTextureLocation());
-        /// entityCutoutNoCull
+        RenderType renderType = RenderTypes.entityCutout(bodyTextureLocation());
+        float partialTick = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);
 
         renderSide(poseStack, renderQueue, renderState, packedLight, model,
                 physics.leftEngine(), buildAttachmentPoint(config, -1), renderType, partialTick);
@@ -100,7 +90,7 @@ public final class BodyRenderLayer extends RenderLayer<PlayerRenderState, Player
                 physics.rightEngine(), buildAttachmentPoint(config, 1), renderType, partialTick);
     }
 
-    private void renderSide(PoseStack poseStack, SubmitNodeCollector renderQueue, PlayerRenderState renderState,
+    private void renderSide(PoseStack poseStack, SubmitNodeCollector renderQueue, S renderState,
             int packedLight, IDeformableModel model, IPhysicsEngine engine, AttachmentPoint attachment,
             RenderType renderType, float partialTick) {
         FranklyAttachmentRenderer.render(
@@ -125,31 +115,14 @@ public final class BodyRenderLayer extends RenderLayer<PlayerRenderState, Player
                 config.offsetY(),
                 config.offsetZ());
         float scale = 0.5f + config.size();
-        return new AttachmentPoint(BODY_TARGET_PART_KEY.getPath(), offset, Vec3.ZERO, scale);
+        return new AttachmentPoint(BODY_TARGET_PART, offset, Vec3.ZERO, scale);
     }
-
-    // Model instances are cheap to reuse and expensive to keep reallocating:
-    // without
-    // this, resolveModel() would call factory.create() fresh every single frame,
-    // which
-    // both defeats ModelMeshCache (keyed by instance identity — a new instance
-    // every
-    // frame never hits its cache) and reallocates every model's ModelVertex[] array
-    // 20+ times a second for no reason, since IDeformableModel instances are
-    // stateless.
-    private static final java.util.Map<Identifier, IDeformableModel> MODEL_INSTANCE_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
     private IDeformableModel resolveModel(Identifier modelId) {
         return MODEL_INSTANCE_CACHE.computeIfAbsent(modelId, id -> {
-            ModelFactory factory = AnatomicaRegistries.MODELS.get(id);
+            ModelFactory factory = AnatomicaRegistries.MODELS.get(id).get().value();
             return factory != null ? factory.create() : null;
         });
-    }
-
-    private UUID resolveUuid(PlayerRenderState renderState) {
-        // TODO verify: point this at whatever field/method your PlayerRenderState
-        // mappings actually expose for the player's UUID.
-        return renderState.gameProfileId();
     }
 
     private Identifier bodyTextureLocation() {
