@@ -2,6 +2,9 @@ package com.frank1o3.anatomica.client.render;
 
 import com.frank1o3.anatomica.model.IDeformableModel;
 import com.frank1o3.anatomica.model.ModelVertex;
+import com.frank1o3.anatomica.uv.UVDirection;
+import com.frank1o3.anatomica.uv.UVLayout;
+import com.frank1o3.anatomica.uv.UVQuad;
 import com.frank1o3.franklylib.Mesh;
 import com.frank1o3.franklylib.MeshVertex;
 
@@ -10,13 +13,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class ModelMeshCache {
 
-    private static final int TEXTURE_SIZE = 64;
+    private static final float TEXTURE_SIZE = 64.0f;
 
-    public record TextureRegion(int x1, int y1, int x2, int y2) {
-        public static final TextureRegion FULL = new TextureRegion(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
-    }
-
-    private record Key(IDeformableModel model, TextureRegion region) {
+    private record Key(IDeformableModel model, UVLayout layout) {
     }
 
     private static final Map<Key, Mesh> CACHE = new ConcurrentHashMap<>();
@@ -24,19 +23,27 @@ public final class ModelMeshCache {
     private ModelMeshCache() {
     }
 
-    public static Mesh get(IDeformableModel model, TextureRegion region) {
-        return CACHE.computeIfAbsent(new Key(model, region), key -> build(key.model(), key.region()));
+    public static Mesh get(IDeformableModel model, UVLayout layout) {
+        return CACHE.computeIfAbsent(new Key(model, layout), key -> build(key.model(), key.layout()));
     }
 
-    private static Mesh build(IDeformableModel model, TextureRegion region) {
+    private static Mesh build(IDeformableModel model, UVLayout layout) {
         ModelVertex[] source = model.baseVertices();
         MeshVertex[] meshVertices = new MeshVertex[source.length];
-        float rw = region.x2() - region.x1();
-        float rh = region.y2() - region.y1();
         for (int i = 0; i < source.length; i++) {
             ModelVertex v = source[i];
-            float u = (region.x1() + v.u() * rw) / TEXTURE_SIZE;
-            float vv = (region.y1() + v.v() * rh) / TEXTURE_SIZE;
+            UVDirection dir = v.direction();
+            UVQuad quad = (dir != null && layout != null) ? layout.get(dir) : null;
+            float u, vv;
+            if (quad != null) {
+                float qw = quad.x2() - quad.x1();
+                float qh = quad.y2() - quad.y1();
+                u = (quad.x1() + v.u() * qw) / TEXTURE_SIZE;
+                vv = (quad.y1() + v.v() * qh) / TEXTURE_SIZE;
+            } else {
+                u = v.u();
+                vv = v.v();
+            }
             meshVertices[i] = new MeshVertex(v.restPosition(), u, vv);
         }
         return Mesh.of(meshVertices, model.indices());

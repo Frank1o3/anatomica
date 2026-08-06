@@ -1,5 +1,6 @@
 package com.frank1o3.anatomica.config;
 
+import com.frank1o3.anatomica.uv.UVLayout;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 
@@ -7,8 +8,7 @@ import net.minecraft.resources.Identifier;
  * A single entity's body customization state. Pure data — no Minecraft client
  * imports, no persistence/networking logic of its own. Serialization is driven
  * generically by {@link AnatomicaConfig}'s registered key table so disk and
- * network
- * code share exactly one read/write path.
+ * network code share exactly one read/write path.
  */
 public final class BodyConfig {
 
@@ -16,10 +16,8 @@ public final class BodyConfig {
     private float offsetX = AnatomicaConfig.OFFSET_X.defaultValue();
     private float offsetY = AnatomicaConfig.OFFSET_Y.defaultValue();
     private float offsetZ = AnatomicaConfig.OFFSET_Z.defaultValue();
-    private int textureX1 = AnatomicaConfig.TEXTURE_X1.defaultValue();
-    private int textureY1 = AnatomicaConfig.TEXTURE_Y1.defaultValue();
-    private int textureX2 = AnatomicaConfig.TEXTURE_X2.defaultValue();
-    private int textureY2 = AnatomicaConfig.TEXTURE_Y2.defaultValue();
+    private UVLayout leftUvLayout = AnatomicaConfig.LEFT_UV_LAYOUT.defaultValue();
+    private UVLayout rightUvLayout = AnatomicaConfig.RIGHT_UV_LAYOUT.defaultValue();
     private float spread = AnatomicaConfig.SPREAD.defaultValue();
     private boolean independentSides = AnatomicaConfig.INDEPENDENT_SIDES.defaultValue();
     private boolean physicsEnabled = AnatomicaConfig.PHYSICS_ENABLED.defaultValue();
@@ -33,7 +31,7 @@ public final class BodyConfig {
     }
 
     // -------------------------------------------------------------------
-    // Getters / setters (setters clamp through the owning key)
+    // Getters / setters
     // -------------------------------------------------------------------
 
     public float size() {
@@ -68,43 +66,20 @@ public final class BodyConfig {
         this.offsetZ = AnatomicaConfig.OFFSET_Z.clamp(value);
     }
 
-    public int textureX1() {
-        return textureX1;
+    public UVLayout leftUvLayout() {
+        return leftUvLayout;
     }
 
-    public void setTextureX1(int v) {
-        this.textureX1 = AnatomicaConfig.TEXTURE_X1.clamp(v);
+    public void setLeftUvLayout(UVLayout value) {
+        this.leftUvLayout = AnatomicaConfig.LEFT_UV_LAYOUT.clamp(value);
     }
 
-    public int textureY1() {
-        return textureY1;
+    public UVLayout rightUvLayout() {
+        return rightUvLayout;
     }
 
-    public void setTextureY1(int v) {
-        this.textureY1 = AnatomicaConfig.TEXTURE_Y1.clamp(v);
-    }
-
-    public int textureX2() {
-        return textureX2;
-    }
-
-    public void setTextureX2(int v) {
-        this.textureX2 = AnatomicaConfig.TEXTURE_X2.clamp(v);
-    }
-
-    public int textureY2() {
-        return textureY2;
-    }
-
-    public void setTextureY2(int v) {
-        this.textureY2 = AnatomicaConfig.TEXTURE_Y2.clamp(v);
-    }
-
-    public void setTextureRegion(int x1, int y1, int x2, int y2) {
-        setTextureX1(x1);
-        setTextureY1(y1);
-        setTextureX2(x2);
-        setTextureY2(y2);
+    public void setRightUvLayout(UVLayout value) {
+        this.rightUvLayout = AnatomicaConfig.RIGHT_UV_LAYOUT.clamp(value);
     }
 
     public float spread() {

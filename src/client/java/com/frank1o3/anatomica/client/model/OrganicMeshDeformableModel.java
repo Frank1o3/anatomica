@@ -4,6 +4,7 @@ import com.frank1o3.anatomica.Anatomica;
 import com.frank1o3.anatomica.client.physics.SoftbodyGridLayout;
 import com.frank1o3.anatomica.model.IDeformableModel;
 import com.frank1o3.anatomica.model.ModelVertex;
+import com.frank1o3.anatomica.uv.UVDirection;
 import com.frank1o3.franklylib.Vec3;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -13,14 +14,8 @@ import java.util.List;
 
 /**
  * A subdivided-cuboid mesh (a grid of quads per face rather than one quad per face),
- * producing a visibly smoother deformation than {@link BoxDeformableModel} because
- * many more vertices each blend a weighted average of nearby physics nodes instead of
- * every corner following exactly one dominant node.
- *
- * <p>
- * Goes through the exact same {@code NodeSkinning} path as every other model — the
- * only difference from {@link BoxDeformableModel} is vertex density and influence
- * count per vertex, not a different deformation mechanism.
+ * producing a visibly smoother deformation than {@link BoxDeformableModel}.
+ * Each face's vertices are pre-tagged with their corresponding {@link UVDirection}.
  */
 public final class OrganicMeshDeformableModel implements IDeformableModel {
 
@@ -37,11 +32,12 @@ public final class OrganicMeshDeformableModel implements IDeformableModel {
 
         float hx = SoftbodyGridLayout.HALF_WIDTH;
         float hy = SoftbodyGridLayout.HALF_HEIGHT;
-        float minZ = -SoftbodyGridLayout.DEPTH * 0.5f;
-        float maxZ = SoftbodyGridLayout.DEPTH * 0.5f;
+        float minZ = 0.0f;
+        float maxZ = SoftbodyGridLayout.DEPTH;
 
         List<Vec3> positions = new ArrayList<>();
         List<float[]> uvs = new ArrayList<>();
+        List<UVDirection> directions = new ArrayList<>();
         List<Integer> indexList = new ArrayList<>();
 
         int steps = SUBDIVISIONS_PER_FACE;
@@ -49,6 +45,7 @@ public final class OrganicMeshDeformableModel implements IDeformableModel {
 
         for (int face = 0; face < 6; face++) {
             int base = positions.size();
+            UVDirection dir = faceDirection(face);
             for (int y = 0; y < vertsPerRow; y++) {
                 float fv = (float) y / steps;
                 for (int x = 0; x < vertsPerRow; x++) {
@@ -56,6 +53,7 @@ public final class OrganicMeshDeformableModel implements IDeformableModel {
                     Vec3 pos = faceVertex(face, fu, fv, hx, hy, minZ, maxZ);
                     positions.add(pos);
                     uvs.add(new float[] { fu, fv });
+                    directions.add(dir);
                 }
             }
             for (int y = 0; y < steps; y++) {
@@ -78,23 +76,30 @@ public final class OrganicMeshDeformableModel implements IDeformableModel {
         for (int i = 0; i < vertices.length; i++) {
             Vec3 pos = positions.get(i);
             float[] uv = uvs.get(i);
+            UVDirection dir = directions.get(i);
             NodeWeighting.Result weighting = NodeWeighting.nearest(pos, nodeRest, INFLUENCES_PER_VERTEX);
-            vertices[i] = new ModelVertex(pos, uv[0], uv[1], weighting.influences(), weighting.weights());
+            vertices[i] = new ModelVertex(pos, uv[0], uv[1], dir, weighting.influences(), weighting.weights());
         }
 
         indices = indexList.stream().mapToInt(Integer::intValue).toArray();
     }
 
-    /**
-     * Maps a face index (0..5) + a [0,1]x[0,1] parametrization to a world position on
-     * that face of the box. Same general parametrized-grid-per-face approach as any
-     * subdivided-cuboid generator.
-     */
+    private static UVDirection faceDirection(int face) {
+        return switch (face) {
+            case 1 -> UVDirection.NORTH; // front
+            case 2 -> UVDirection.WEST;  // left
+            case 3 -> UVDirection.EAST;  // right
+            case 4 -> UVDirection.DOWN;  // bottom
+            case 5 -> UVDirection.UP;    // top
+            default -> null;             // back (attachment)
+        };
+    }
+
     private static Vec3 faceVertex(int face, float u, float v, float hx, float hy, float minZ, float maxZ) {
         float xAcrossU = -hx + u * (hx * 2f);
         float yAcrossU = -hy + u * (hy * 2f);
         float yAcrossV = -hy + v * (hy * 2f);
-        float zAcrossV = lerpZ(v, minZ, maxZ);
+        float zAcrossV = minZ + v * (maxZ - minZ);
         return switch (face) {
             case 0 -> new Vec3(xAcrossU, yAcrossV, minZ);          // back
             case 1 -> new Vec3(xAcrossU, yAcrossV, maxZ);          // front
@@ -103,10 +108,6 @@ public final class OrganicMeshDeformableModel implements IDeformableModel {
             case 4 -> new Vec3(xAcrossU, -hy, zAcrossV);           // bottom
             default -> new Vec3(xAcrossU, hy, zAcrossV);           // top
         };
-    }
-
-    private static float lerpZ(float t, float minZ, float maxZ) {
-        return minZ + t * (maxZ - minZ);
     }
 
     @Override

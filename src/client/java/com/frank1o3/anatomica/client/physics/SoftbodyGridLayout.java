@@ -52,7 +52,7 @@ public final class SoftbodyGridLayout {
 
         for (int z = 0; z < LAYERS; z++) {
             float fz = (float) z / (LAYERS - 1);
-            float posZ = -DEPTH * 0.5f + fz * DEPTH; // z=0 layer is the back/anchor layer
+            float posZ = fz * DEPTH; // z=0 layer is the back/anchor layer (at attachment surface)
             for (int y = 0; y < ROWS; y++) {
                 float fy = (float) y / (ROWS - 1);
                 float posY = -HALF_HEIGHT + fy * (HALF_HEIGHT * 2f);
