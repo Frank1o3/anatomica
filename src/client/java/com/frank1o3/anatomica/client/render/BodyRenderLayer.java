@@ -93,6 +93,7 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
             return; // entity not actually visible this pass
 
         ClientBodyPhysics physics = ClientBodyPhysics.get(uuid);
+        physics.ensureEngines(config);
         ModelMeshCache.TextureRegion region = new ModelMeshCache.TextureRegion(
                 config.textureX1(), config.textureY1(), config.textureX2(), config.textureY2());
         float partialTick = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);

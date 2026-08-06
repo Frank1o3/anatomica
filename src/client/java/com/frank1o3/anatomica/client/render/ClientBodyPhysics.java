@@ -49,13 +49,15 @@ public final class ClientBodyPhysics {
      */
     public void tick(float deltaTime, LivingEntityLike entity, BodyConfig config) {
         ensureEngines(config);
-        leftEngine.tick(deltaTime, entity, config);
-        if (currentIndependentSides) {
+        if (leftEngine != null) {
+            leftEngine.tick(deltaTime, entity, config);
+        }
+        if (currentIndependentSides && rightEngine != null) {
             rightEngine.tick(deltaTime, entity, config);
         }
     }
 
-    /** The left-side engine. Always present. */
+    /** The left-side engine. Call {@link #ensureEngines(BodyConfig)} first if needed. */
     public IPhysicsEngine leftEngine() {
         return leftEngine;
     }
@@ -69,7 +71,11 @@ public final class ClientBodyPhysics {
         return currentIndependentSides ? rightEngine : leftEngine;
     }
 
-    private void ensureEngines(BodyConfig config) {
+    /**
+     * Ensures engine instances exist and match the given {@code config}. Safe to call
+     * before rendering or ticking.
+     */
+    public void ensureEngines(BodyConfig config) {
         boolean engineChanged = leftEngine == null || !config.physicsEngineId().equals(currentEngineId);
         boolean sidesChanged = config.independentSides() != currentIndependentSides;
 
@@ -77,9 +83,9 @@ public final class ClientBodyPhysics {
             return;
         }
 
-        PhysicsEngineFactory factory = AnatomicaRegistries.PHYSICS_ENGINES.get(config.physicsEngineId()).get().value();
-        leftEngine = factory.create();
-        rightEngine = config.independentSides() ? factory.create() : null;
+        PhysicsEngineFactory factory = AnatomicaRegistries.PHYSICS_ENGINES.getValue(config.physicsEngineId());
+        leftEngine = factory != null ? factory.create() : null;
+        rightEngine = config.independentSides() && factory != null ? factory.create() : null;
         currentEngineId = config.physicsEngineId();
         currentIndependentSides = config.independentSides();
     }

@@ -25,6 +25,9 @@ public final class BoundMeshDeformer implements MeshDeformer {
 
     @Override
     public Vec3[] deform(Mesh baseMesh, float partialTick) {
+        if (engine == null) {
+            return model.deform(null);
+        }
         engine.interpolate(partialTick);
         return model.deform(engine);
     }

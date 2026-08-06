@@ -33,6 +33,9 @@ public final class NodeSkinning {
     }
 
     public static Vec3 skin(ModelVertex vertex, IPhysicsEngine engine) {
+        if (engine == null) {
+            return vertex.restPosition();
+        }
         int[] influences = vertex.nodeInfluences();
         float[] weights = vertex.nodeWeights();
 

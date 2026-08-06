@@ -1,0 +1,23 @@
+{
+    "category.anatomica.main": "Anatomica",
+    "key.category.anatomica.main": "Anatomica",
+    "key.anatomica.open_scale_screen": "Open Customization Screen",
+    "screen.anatomica.body_customization": "Body Customization",
+    "tab.anatomica.general": "General",
+    "tab.anatomica.physics": "Physics",
+    "tab.anatomica.model": "Model",
+    "tab.anatomica.uv": "UV / Texture",
+    "option.anatomica.size": "Size",
+    "option.anatomica.offset_x": "Offset X",
+    "option.anatomica.offset_y": "Offset Y",
+    "option.anatomica.offset_z": "Offset Z",
+    "option.anatomica.spread": "Spread",
+    "option.anatomica.show_in_armor": "Show in Armor",
+    "option.anatomica.physics_enabled": "Enable Physics",
+    "option.anatomica.independent_sides": "Independent Sides",
+    "option.anatomica.bounce_strength": "Bounce Strength",
+    "option.anatomica.softness": "Softness",
+    "option.anatomica.reset_uv": "Reset UV",
+    "model.anatomica.box": "Box Model",
+    "model.anatomica.organic": "Organic Mesh Model"
+}
