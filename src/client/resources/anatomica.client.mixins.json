@@ -4,7 +4,8 @@
 	"compatibilityLevel": "JAVA_25",
 	"client": [
 		"AvatarRendererMixin",
-		"LivingEntityRendererMixin"
+		"LivingEntityRendererMixin",
+		"accessors.LivingEntityRendererAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
