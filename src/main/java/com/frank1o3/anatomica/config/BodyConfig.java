@@ -16,6 +16,10 @@ public final class BodyConfig {
     private float offsetX = AnatomicaConfig.OFFSET_X.defaultValue();
     private float offsetY = AnatomicaConfig.OFFSET_Y.defaultValue();
     private float offsetZ = AnatomicaConfig.OFFSET_Z.defaultValue();
+    private int textureX1 = AnatomicaConfig.TEXTURE_X1.defaultValue();
+    private int textureY1 = AnatomicaConfig.TEXTURE_Y1.defaultValue();
+    private int textureX2 = AnatomicaConfig.TEXTURE_X2.defaultValue();
+    private int textureY2 = AnatomicaConfig.TEXTURE_Y2.defaultValue();
     private float spread = AnatomicaConfig.SPREAD.defaultValue();
     private boolean independentSides = AnatomicaConfig.INDEPENDENT_SIDES.defaultValue();
     private boolean physicsEnabled = AnatomicaConfig.PHYSICS_ENABLED.defaultValue();
@@ -62,6 +66,45 @@ public final class BodyConfig {
 
     public void setOffsetZ(float value) {
         this.offsetZ = AnatomicaConfig.OFFSET_Z.clamp(value);
+    }
+
+    public int textureX1() {
+        return textureX1;
+    }
+
+    public void setTextureX1(int v) {
+        this.textureX1 = AnatomicaConfig.TEXTURE_X1.clamp(v);
+    }
+
+    public int textureY1() {
+        return textureY1;
+    }
+
+    public void setTextureY1(int v) {
+        this.textureY1 = AnatomicaConfig.TEXTURE_Y1.clamp(v);
+    }
+
+    public int textureX2() {
+        return textureX2;
+    }
+
+    public void setTextureX2(int v) {
+        this.textureX2 = AnatomicaConfig.TEXTURE_X2.clamp(v);
+    }
+
+    public int textureY2() {
+        return textureY2;
+    }
+
+    public void setTextureY2(int v) {
+        this.textureY2 = AnatomicaConfig.TEXTURE_Y2.clamp(v);
+    }
+
+    public void setTextureRegion(int x1, int y1, int x2, int y2) {
+        setTextureX1(x1);
+        setTextureY1(y1);
+        setTextureX2(x2);
+        setTextureY2(y2);
     }
 
     public float spread() {

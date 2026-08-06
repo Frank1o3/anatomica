@@ -4,6 +4,7 @@ import com.frank1o3.anatomica.Anatomica;
 import com.frank1o3.anatomica.config.keys.BooleanConfigKey;
 import com.frank1o3.anatomica.config.keys.FloatConfigKey;
 import com.frank1o3.anatomica.config.keys.IdentifierConfigKey;
+import com.frank1o3.anatomica.config.keys.IntConfigKey;
 import com.frank1o3.anatomica.registry.AnatomicaRegistries;
 import net.minecraft.nbt.CompoundTag;
 
@@ -31,6 +32,11 @@ public final class AnatomicaConfig {
         public static final FloatConfigKey OFFSET_Z = new FloatConfigKey("offset_z", 0.0f, -0.5f, 0.5f);
 
         public static final FloatConfigKey SPREAD = new FloatConfigKey("spread", 0.02f, 0.0f, 0.1f);
+
+        public static final IntConfigKey TEXTURE_X1 = new IntConfigKey("texture_x1", 0, 0, 64);
+        public static final IntConfigKey TEXTURE_Y1 = new IntConfigKey("texture_y1", 0, 0, 64);
+        public static final IntConfigKey TEXTURE_X2 = new IntConfigKey("texture_x2", 64, 0, 64);
+        public static final IntConfigKey TEXTURE_Y2 = new IntConfigKey("texture_y2", 64, 0, 64);
 
         public static final BooleanConfigKey INDEPENDENT_SIDES = new BooleanConfigKey("independent_sides", true);
 
@@ -61,7 +67,11 @@ public final class AnatomicaConfig {
                         entry(SOFTNESS, BodyConfig::softness, BodyConfig::setSoftness),
                         entry(PHYSICS_ENGINE_ID, BodyConfig::physicsEngineId, BodyConfig::setPhysicsEngineId),
                         entry(MODEL_ID, BodyConfig::modelId, BodyConfig::setModelId),
-                        entry(SHOW_IN_ARMOR, BodyConfig::showInArmor, BodyConfig::setShowInArmor));
+                        entry(SHOW_IN_ARMOR, BodyConfig::showInArmor, BodyConfig::setShowInArmor),
+                        entry(TEXTURE_X1, BodyConfig::textureX1, BodyConfig::setTextureX1),
+                        entry(TEXTURE_Y1, BodyConfig::textureY1, BodyConfig::setTextureY1),
+                        entry(TEXTURE_X2, BodyConfig::textureX2, BodyConfig::setTextureX2),
+                        entry(TEXTURE_Y2, BodyConfig::textureY2, BodyConfig::setTextureY2));
 
         private AnatomicaConfig() {
         }

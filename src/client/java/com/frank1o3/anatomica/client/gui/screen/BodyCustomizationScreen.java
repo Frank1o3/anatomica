@@ -1,38 +1,37 @@
 package com.frank1o3.anatomica.client.gui.screen;
 
+import com.frank1o3.anatomica.client.gui.TextureRegionPicker;
 import com.frank1o3.anatomica.client.networking.AnatomicaClientNetworking;
 import com.frank1o3.anatomica.config.AnatomicaConfig;
 import com.frank1o3.anatomica.config.BodyConfig;
 import com.frank1o3.anatomica.data.EntityBodyData;
-import com.frank1o3.franklylib.client.gui.BaseFranklyScreen;
-import com.frank1o3.franklylib.client.gui.FranklyButton;
-import com.frank1o3.franklylib.client.gui.FranklyCheckbox;
-import com.frank1o3.franklylib.client.gui.FranklySlider;
+import com.frank1o3.anatomica.model.ModelFactory;
+import com.frank1o3.anatomica.registry.AnatomicaRegistries;
+import com.frank1o3.franklylib.client.gui.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * The primary body customization screen: one slider per continuous
- * {@link BodyConfig}
- * field, one checkbox per boolean field, and a button through to
- * {@link ModelSelectScreen} for picking the physics engine / model. Edits a
- * working
- * copy of the local player's config and only pushes it to the server (via
- * {@link AnatomicaClientNetworking#sendLocalConfig}) when a slider is released
- * or a
- * toggle is clicked — never continuously while dragging.
- */
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 public final class BodyCustomizationScreen extends BaseFranklyScreen {
 
     private static final int PANEL_WIDTH = 240;
-    private static final int PANEL_HEIGHT = 220;
-    private static final int CONTENT_PADDING = 12;
+    private static final int PANEL_HEIGHT = 200;
+    private static final int PADDING = 12;
     private static final int ROW_HEIGHT = 22;
     private static final int SLIDER_WIDTH = 216;
 
+    private enum Tab {
+        GENERAL, PHYSICS, MODEL, UV
+    }
+
+    private Tab currentTab = Tab.GENERAL;
     private BodyConfig working;
 
     public BodyCustomizationScreen(@Nullable Screen parent) {
@@ -43,55 +42,59 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
     protected void init() {
         super.init();
 
-        Minecraft client = Minecraft.getInstance();
-        working = client.player != null
-                ? EntityBodyData.get(client.player.getUUID()).copy()
-                : new BodyConfig();
+        if (working == null) {
+            Minecraft client = Minecraft.getInstance();
+            working = client.player != null
+                    ? EntityBodyData.get(client.player.getUUID()).copy()
+                    : new BodyConfig();
+        }
 
-        int x = panelX() + CONTENT_PADDING;
-        int y = panelY() + 24;
-        int sliderX = x;
+        int x = panelX() + PADDING;
+        int tabY = panelY() + 20;
 
-        addRenderableWidget(sizeSlider(sliderX, y));
+        addRenderableWidget(FranklyTabBar.<Tab>builder()
+                .bounds(x, tabY, SLIDER_WIDTH, 16)
+                .tabs(List.of(Tab.GENERAL, Tab.PHYSICS, Tab.MODEL, Tab.UV))
+                .labelMapper(tab -> Component.translatable("tab.anatomica." + tab.name().toLowerCase()))
+                .current(currentTab)
+                .onSelect(this::switchTab)
+                .build());
+
+        int y = tabY + 22;
+        switch (currentTab) {
+            case GENERAL -> initGeneralTab(x, y);
+            case PHYSICS -> initPhysicsTab(x, y);
+            case MODEL -> initModelTab(x, y);
+            case UV -> initUvTab(x, y);
+        }
+    }
+
+    private void switchTab(Tab tab) {
+        currentTab = tab;
+        rebuildWidgets();
+    }
+
+    private void initGeneralTab(int x, int y) {
+        addRenderableWidget(FranklyEntityPreviewWidget.builder()
+                .bounds(x + SLIDER_WIDTH - 64, y, 64, 96)
+                .previewSize(28)
+                .entity(() -> Minecraft.getInstance().player)
+                .build());
+
+        int sliderWidth = SLIDER_WIDTH - 72;
+        addRenderableWidget(sizeSlider(x, y, sliderWidth));
         y += ROW_HEIGHT;
-        addRenderableWidget(offsetSlider("offset_x", sliderX, y, working.offsetX(), working::setOffsetX));
+        addRenderableWidget(offsetSlider("offset_x", x, y, sliderWidth, working.offsetX(), working::setOffsetX));
         y += ROW_HEIGHT;
-        addRenderableWidget(offsetSlider("offset_y", sliderX, y, working.offsetY(), working::setOffsetY));
+        addRenderableWidget(offsetSlider("offset_y", x, y, sliderWidth, working.offsetY(), working::setOffsetY));
         y += ROW_HEIGHT;
-        addRenderableWidget(offsetSlider("offset_z", sliderX, y, working.offsetZ(), working::setOffsetZ));
+        addRenderableWidget(offsetSlider("offset_z", x, y, sliderWidth, working.offsetZ(), working::setOffsetZ));
         y += ROW_HEIGHT;
-        addRenderableWidget(spreadSlider(sliderX, y));
-        y += ROW_HEIGHT;
-        addRenderableWidget(bounceSlider(sliderX, y));
-        y += ROW_HEIGHT;
-        addRenderableWidget(softnessSlider(sliderX, y));
+        addRenderableWidget(spreadSlider(x, y, sliderWidth));
         y += ROW_HEIGHT + 4;
 
-        int checkboxX = x;
         addRenderableWidget(FranklyCheckbox.builder()
-                .bounds(checkboxX, y, 14, 14)
-                .label(Component.translatable("option.anatomica.physics_enabled"))
-                .checked(working.physicsEnabled())
-                .onToggle(value -> {
-                    working.setPhysicsEnabled(value);
-                    pushToServer();
-                })
-                .build());
-        y += 18;
-
-        addRenderableWidget(FranklyCheckbox.builder()
-                .bounds(checkboxX, y, 14, 14)
-                .label(Component.translatable("option.anatomica.independent_sides"))
-                .checked(working.independentSides())
-                .onToggle(value -> {
-                    working.setIndependentSides(value);
-                    pushToServer();
-                })
-                .build());
-        y += 18;
-
-        addRenderableWidget(FranklyCheckbox.builder()
-                .bounds(checkboxX, y, 14, 14)
+                .bounds(x, y, 14, 14)
                 .label(Component.translatable("option.anatomica.show_in_armor"))
                 .checked(working.showInArmor())
                 .onToggle(value -> {
@@ -99,24 +102,114 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                     pushToServer();
                 })
                 .build());
-        y += 22;
+
+        addDoneButton();
+    }
+
+    private void initPhysicsTab(int x, int y) {
+        addRenderableWidget(FranklyCheckbox.builder()
+                .bounds(x, y, 14, 14)
+                .label(Component.translatable("option.anatomica.physics_enabled"))
+                .checked(working.physicsEnabled())
+                .onToggle(value -> {
+                    working.setPhysicsEnabled(value);
+                    pushToServer();
+                })
+                .build());
+        y += 20;
+
+        addRenderableWidget(FranklyCheckbox.builder()
+                .bounds(x, y, 14, 14)
+                .label(Component.translatable("option.anatomica.independent_sides"))
+                .checked(working.independentSides())
+                .onToggle(value -> {
+                    working.setIndependentSides(value);
+                    pushToServer();
+                })
+                .build());
+        y += 24;
+
+        addRenderableWidget(bounceSlider(x, y));
+        y += ROW_HEIGHT;
+        addRenderableWidget(softnessSlider(x, y));
+
+        addDoneButton();
+    }
+
+    private void initModelTab(int x, int y) {
+        List<Identifier> engineIds = new ArrayList<>();
+        AnatomicaRegistries.PHYSICS_ENGINES.keySet().forEach(engineIds::add);
+
+        addRenderableWidget(FranklyDropdown.<Identifier>builder()
+                .bounds(x, y, SLIDER_WIDTH, 20)
+                .options(engineIds)
+                .current(working.physicsEngineId())
+                .labelMapper(id -> Component.literal(id.getPath()))
+                .onSelect(id -> {
+                    working.setPhysicsEngineId(id);
+                    pushToServer();
+                })
+                .build());
+        y += 28;
+
+        List<Identifier> modelIds = new ArrayList<>();
+        AnatomicaRegistries.MODELS.keySet().forEach(modelIds::add);
+
+        addRenderableWidget(FranklyDropdown.<Identifier>builder()
+                .bounds(x, y, SLIDER_WIDTH, 20)
+                .options(modelIds)
+                .current(working.modelId())
+                .labelMapper(this::modelDisplayName)
+                .onSelect(id -> {
+                    working.setModelId(id);
+                    pushToServer();
+                })
+                .build());
+
+        addDoneButton();
+    }
+
+    private Component modelDisplayName(Identifier id) {
+        ModelFactory factory = AnatomicaRegistries.MODELS.get(id).get().value();
+        return factory != null ? factory.create().displayName() : Component.literal(id.getPath());
+    }
+
+    private void initUvTab(int x, int y) {
+        Consumer<int[]> commit = region -> {
+            working.setTextureRegion(region[0], region[1], region[2], region[3]);
+            pushToServer();
+        };
+        int pickerSize = Math.min(panelHeight - 60, SLIDER_WIDTH);
+        addRenderableWidget(new TextureRegionPicker(x, y, pickerSize, working, commit));
 
         addRenderableWidget(FranklyButton.builder()
-                .bounds(x, y, SLIDER_WIDTH / 2 - 4, 20)
-                .message(Component.translatable("screen.anatomica.select_model"))
-                .onPress(btn -> minecraft.gui.setScreen(new ModelSelectScreen(this, working, this::pushToServer)))
+                .bounds(x, panelY() + panelHeight - 26, SLIDER_WIDTH / 2 - 4, 20)
+                .message(Component.translatable("option.anatomica.reset_uv"))
+                .onPress(btn -> {
+                    working.setTextureRegion(0, 0, 64, 64);
+                    pushToServer();
+                    rebuildWidgets();
+                })
                 .build());
 
         addRenderableWidget(FranklyButton.builder()
-                .bounds(x + SLIDER_WIDTH / 2 + 4, y, SLIDER_WIDTH / 2 - 4, 20)
+                .bounds(x + SLIDER_WIDTH / 2 + 4, panelY() + panelHeight - 26, SLIDER_WIDTH / 2 - 4, 20)
                 .message(Component.translatable("gui.done"))
                 .onPress(btn -> onClose())
                 .build());
     }
 
-    private FranklySlider sizeSlider(int x, int y) {
+    private void addDoneButton() {
+        addRenderableWidget(FranklyButton.builder()
+                .bounds(panelX() + PADDING, panelY() + panelHeight - 26, SLIDER_WIDTH, 20)
+                .message(Component.translatable("gui.done"))
+                .onPress(btn -> onClose())
+                .build());
+    }
+
+    private FranklySlider sizeSlider(int x, int y, int width) {
         return FranklySlider.builder()
-                .bounds(x, y, SLIDER_WIDTH, 20)
+                .bounds(x, y, width, 20)
                 .range(AnatomicaConfig.SIZE.min(), AnatomicaConfig.SIZE.max())
                 .step(0.01)
                 .initialValue(working.size())
@@ -127,23 +220,23 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .build();
     }
 
-    private FranklySlider offsetSlider(String translationKey, int x, int y, float initial,
+    private FranklySlider offsetSlider(String key, int x, int y, int width, float initial,
             java.util.function.Consumer<Float> setter) {
         return FranklySlider.builder()
-                .bounds(x, y, SLIDER_WIDTH, 20)
+                .bounds(x, y, width, 20)
                 .range(-0.5, 0.5)
                 .step(0.01)
                 .initialValue(initial)
-                .label(Component.translatable("option.anatomica." + translationKey))
+                .label(Component.translatable("option.anatomica." + key))
                 .formatterString(v -> String.format("%.2f", v))
                 .onValueChanged(v -> setter.accept((float) (double) v))
                 .onValueCommitted(v -> pushToServer())
                 .build();
     }
 
-    private FranklySlider spreadSlider(int x, int y) {
+    private FranklySlider spreadSlider(int x, int y, int width) {
         return FranklySlider.builder()
-                .bounds(x, y, SLIDER_WIDTH, 20)
+                .bounds(x, y, width, 20)
                 .range(AnatomicaConfig.SPREAD.min(), AnatomicaConfig.SPREAD.max())
                 .step(0.005)
                 .initialValue(working.spread())
@@ -187,9 +280,5 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
     @Override
     protected void renderPanelContent(GuiGraphicsExtractor graphics, int panelX, int panelY,
             int mouseX, int mouseY, float delta) {
-        // Base panel chrome (dim overlay, border, title) is already drawn by
-        // BaseFranklyScreen before this is called; nothing extra needed here yet. A
-        // live entity preview (via FranklyGuiUtils.drawScaledEntityPreview) could be
-        // added here later if the panel is widened to make room for one.
     }
 }
