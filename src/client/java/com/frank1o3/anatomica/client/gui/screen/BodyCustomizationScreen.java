@@ -238,7 +238,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
         };
 
         faceUvPicker = new FaceUVPicker(x, y, pickerSize, currentUvSide.id, currentLayout, commitUv, onSelectFace);
-        faceUvPicker.setSelectedDirection(currentUvFace);
+        faceUvPicker.setSelectedDirectionSilently(currentUvFace);
         addRenderableWidget(faceUvPicker);
 
         // Right column: Face selection & Quad sliders

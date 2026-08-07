@@ -52,11 +52,18 @@ public final class FaceUVPicker extends AbstractWidget {
     }
 
     public void setSelectedDirection(UVDirection dir) {
-        if (dir != null) {
+        if (dir != null && dir != this.selectedDirection) {
             this.selectedDirection = dir;
             if (onSelectFace != null) {
                 onSelectFace.accept(dir);
             }
+        }
+    }
+
+    /** Sets the selected direction without firing the onSelectFace callback. Use for initial sync. */
+    public void setSelectedDirectionSilently(UVDirection dir) {
+        if (dir != null) {
+            this.selectedDirection = dir;
         }
     }
 
