@@ -40,5 +40,8 @@ public interface LivingEntityLike {
     /** Arm-swing progress in {@code [0, 1]}, or {@code 0} if not swinging. */
     float attackSwingProgress(float partialTick);
 
+    /** Change in body Y-rotation (yaw) since last tick, in degrees. */
+    float bodyYawDelta();
+
     long randomSeed();
 }

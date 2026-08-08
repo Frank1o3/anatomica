@@ -30,7 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Attaches the player's configured body model, left and right side, to the "body"
+ * Attaches the player's configured body model, left and right side, to the
+ * "body"
  * attachment point, deformed each frame by that player's physics engine(s).
  */
 public final class BodyRenderLayer<S extends AvatarRenderState, M extends HumanoidModel<S>> extends RenderLayer<S, M> {
@@ -65,6 +66,9 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
         UUID uuid = bodyState.uuid;
         BodyConfig config = EntityBodyData.get(uuid);
 
+        if (!config.breastsEnabled())
+            return;
+
         IDeformableModel model = resolveModel(config.modelId());
         if (model == null)
             return;
@@ -95,12 +99,17 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
                 renderType, packedLight, 0, 0xFFFFFFFF, partialTick);
     }
 
+    private static final float BASE_Y_OFFSET = 0.20f;
+    private static final float BASE_Z_OFFSET = -0.125f;
+
     private AttachmentPoint buildAttachmentPoint(BodyConfig config, int side) {
-        float sideSign = Math.signum(side);
+        // In Minecraft model coordinates: +X is character's Left, -X is character's Right.
+        // side = -1 is Left breast -> +X. side = 1 is Right breast -> -X.
+        float sideSign = -Math.signum(side);
         Vec3 offset = new Vec3(
                 config.offsetX() + sideSign * (SIDE_X_OFFSET + config.spread()),
-                config.offsetY(),
-                config.offsetZ());
+                BASE_Y_OFFSET + config.offsetY(),
+                BASE_Z_OFFSET - config.offsetZ());
         float scale = 0.5f + config.size();
         return new AttachmentPoint(BODY_TARGET_PART, offset, Vec3.ZERO, scale);
     }

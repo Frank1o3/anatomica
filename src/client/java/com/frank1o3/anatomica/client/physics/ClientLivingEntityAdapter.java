@@ -68,6 +68,11 @@ public final class ClientLivingEntityAdapter implements LivingEntityLike {
     }
 
     @Override
+    public float bodyYawDelta() {
+        return entity.yBodyRot - entity.yBodyRotO;
+    }
+
+    @Override
     public long randomSeed() {
         return entity.getUUID().getMostSignificantBits();
     }

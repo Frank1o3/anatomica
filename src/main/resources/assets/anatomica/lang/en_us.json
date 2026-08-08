@@ -18,6 +18,14 @@
     "option.anatomica.bounce_strength": "Bounce Strength",
     "option.anatomica.softness": "Softness",
     "option.anatomica.reset_uv": "Reset UV",
+    "option.anatomica.enable_breasts": "Enable Breasts",
+    "option.anatomica.side.left": "Left Side",
+    "option.anatomica.side.right": "Right Side",
+    "option.anatomica.face.inner": "Inner",
+    "option.anatomica.face.outer": "Outer",
+    "option.anatomica.face.north": "Front",
+    "option.anatomica.face.down": "Bottom",
+    "option.anatomica.face.up": "Top",
     "model.anatomica.box": "Box Model",
     "model.anatomica.organic": "Organic Mesh Model"
 }

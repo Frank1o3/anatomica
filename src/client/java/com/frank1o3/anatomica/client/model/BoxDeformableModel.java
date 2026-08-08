@@ -31,7 +31,7 @@ public final class BoxDeformableModel implements IDeformableModel {
         float hx = SoftbodyGridLayout.HALF_WIDTH;
         float hy = SoftbodyGridLayout.HALF_HEIGHT;
         float minZ = 0.0f;
-        float maxZ = SoftbodyGridLayout.DEPTH;
+        float maxZ = -SoftbodyGridLayout.DEPTH;
 
         List<ModelVertex> vertexList = new ArrayList<>();
         List<Integer> indexList = new ArrayList<>();
@@ -42,8 +42,8 @@ public final class BoxDeformableModel implements IDeformableModel {
         addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(hx, -hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(-hx, hy, maxZ), UVDirection.NORTH); // Front
         addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(-hx, -hy, minZ), new Vec3(-hx, hy, minZ), new Vec3(-hx, hy, maxZ), UVDirection.WEST); // Left
         addFace(vertexList, indexList, nodeRest, new Vec3(hx, -hy, minZ), new Vec3(hx, -hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), UVDirection.EAST); // Right
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ), new Vec3(hx, -hy, maxZ), new Vec3(-hx, -hy, maxZ), UVDirection.DOWN); // Bottom
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), UVDirection.UP); // Top
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ), new Vec3(hx, -hy, maxZ), new Vec3(-hx, -hy, maxZ), UVDirection.UP); // Top (-hy)
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), UVDirection.DOWN); // Bottom (+hy)
 
         vertices = vertexList.toArray(new ModelVertex[0]);
         indices = indexList.stream().mapToInt(Integer::intValue).toArray();

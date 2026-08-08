@@ -33,7 +33,7 @@ public final class OrganicMeshDeformableModel implements IDeformableModel {
         float hx = SoftbodyGridLayout.HALF_WIDTH;
         float hy = SoftbodyGridLayout.HALF_HEIGHT;
         float minZ = 0.0f;
-        float maxZ = SoftbodyGridLayout.DEPTH;
+        float maxZ = -SoftbodyGridLayout.DEPTH;
 
         List<Vec3> positions = new ArrayList<>();
         List<float[]> uvs = new ArrayList<>();
@@ -89,8 +89,8 @@ public final class OrganicMeshDeformableModel implements IDeformableModel {
             case 1 -> UVDirection.NORTH; // front
             case 2 -> UVDirection.WEST;  // left
             case 3 -> UVDirection.EAST;  // right
-            case 4 -> UVDirection.DOWN;  // bottom
-            case 5 -> UVDirection.UP;    // top
+            case 4 -> UVDirection.UP;    // top (-hy)
+            case 5 -> UVDirection.DOWN;  // bottom (+hy)
             default -> null;             // back (attachment)
         };
     }
@@ -105,8 +105,8 @@ public final class OrganicMeshDeformableModel implements IDeformableModel {
             case 1 -> new Vec3(xAcrossU, yAcrossV, maxZ);          // front
             case 2 -> new Vec3(-hx, yAcrossU, zAcrossV);           // left
             case 3 -> new Vec3(hx, yAcrossU, zAcrossV);            // right
-            case 4 -> new Vec3(xAcrossU, -hy, zAcrossV);           // bottom
-            default -> new Vec3(xAcrossU, hy, zAcrossV);           // top
+            case 4 -> new Vec3(xAcrossU, -hy, zAcrossV);           // top (-hy)
+            default -> new Vec3(xAcrossU, hy, zAcrossV);           // bottom (+hy)
         };
     }
 

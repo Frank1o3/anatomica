@@ -16,8 +16,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * A FranklyLib-styled widget for per-face UV editing on the player's skin backdrop.
- * Renders face bounding boxes with labeled/colored borders, allowing face selection and corner dragging.
+ * A FranklyLib-styled widget for per-face UV editing on the player's skin
+ * backdrop.
+ * Renders face bounding boxes with labeled/colored borders, allowing face
+ * selection and corner dragging.
  */
 public final class FaceUVPicker extends AbstractWidget {
 
@@ -35,7 +37,7 @@ public final class FaceUVPicker extends AbstractWidget {
     private boolean draggingMax;
 
     public FaceUVPicker(int x, int y, int size, int side, UVLayout layout,
-                        Consumer<UVLayout> onCommit, Consumer<UVDirection> onSelectFace) {
+            Consumer<UVLayout> onCommit, Consumer<UVDirection> onSelectFace) {
         super(x, y, size, size, Component.empty());
         this.side = side;
         this.layout = layout.copy();
@@ -60,7 +62,10 @@ public final class FaceUVPicker extends AbstractWidget {
         }
     }
 
-    /** Sets the selected direction without firing the onSelectFace callback. Use for initial sync. */
+    /**
+     * Sets the selected direction without firing the onSelectFace callback. Use for
+     * initial sync.
+     */
     public void setSelectedDirectionSilently(UVDirection dir) {
         if (dir != null) {
             this.selectedDirection = dir;
@@ -81,19 +86,23 @@ public final class FaceUVPicker extends AbstractWidget {
         // Background border & skin texture
         graphics.fill(getX() - 1, getY() - 1, getX() + width + 1, getY() + height + 1, 0xFF_555577);
         if (player != null) {
-            graphics.blit(RenderPipelines.GUI_TEXTURED, player.getSkin().body().id(),
-                    getX(), getY(), 0, 0, width, height, TEXTURE_SIZE, TEXTURE_SIZE);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, player.getSkin().body().texturePath(),
+                    getX(), getY(), // destination x, y
+                    0.0f, 0.0f, // source u, v (top-left of the skin)
+                    width, height, // destination width, height (scaled up to widget size)
+                    TEXTURE_SIZE, TEXTURE_SIZE, // srcWidth, srcHeight (sample the full 64x64)
+                    TEXTURE_SIZE, TEXTURE_SIZE); // textureWidth, textureHeight (for UV normalization)
         } else {
             graphics.fill(getX(), getY(), getX() + width, getY() + height, 0xFF_222222);
         }
-
         float s = scale();
 
         // Render all non-selected face quads first (faded)
         for (Map.Entry<UVDirection, UVQuad> entry : layout.getAllSides().entrySet()) {
             UVDirection dir = entry.getKey();
             UVQuad quad = entry.getValue();
-            if (dir == selectedDirection || quad == null) continue;
+            if (dir == selectedDirection || quad == null)
+                continue;
             drawQuadBorder(graphics, dir, quad, s, true);
         }
 
@@ -128,7 +137,8 @@ public final class FaceUVPicker extends AbstractWidget {
 
         // Short face code label inside box if clear
         if (!faded && rx2 - rx1 > 8 && ry2 - ry1 > 8) {
-            graphics.text(Minecraft.getInstance().font, Component.literal(dir.getShortName()), rx1 + 2, ry1 + 2, 0xFF_FFFFFF, false);
+            graphics.text(Minecraft.getInstance().font, Component.literal(dir.getShortName()), rx1 + 2, ry1 + 2,
+                    0xFF_FFFFFF, false);
         }
     }
 
@@ -176,7 +186,8 @@ public final class FaceUVPicker extends AbstractWidget {
     @Override
     protected void onDrag(MouseButtonEvent event, double dragX, double dragY) {
         UVQuad quad = layout.get(selectedDirection);
-        if (quad == null) return;
+        if (quad == null)
+            return;
 
         int mx = Mth.clamp((int) ((event.x() - getX()) / scale()), 0, TEXTURE_SIZE);
         int my = Mth.clamp((int) ((event.y() - getY()) / scale()), 0, TEXTURE_SIZE);

@@ -19,7 +19,9 @@ import java.util.function.Function;
  */
 public final class AnatomicaConfig {
 
-    public static final FloatConfigKey SIZE = new FloatConfigKey("size", 0.5f, 0.0f, 1.0f);
+    public static final BooleanConfigKey BREASTS_ENABLED = new BooleanConfigKey("breasts_enabled", false);
+
+    public static final FloatConfigKey SIZE = new FloatConfigKey("size", 0.4f, 0.0f, 1.0f);
 
     public static final FloatConfigKey OFFSET_X = new FloatConfigKey("offset_x", 0.0f, -0.5f, 0.5f);
 
@@ -27,16 +29,21 @@ public final class AnatomicaConfig {
 
     public static final FloatConfigKey OFFSET_Z = new FloatConfigKey("offset_z", 0.0f, -0.5f, 0.5f);
 
-    public static final FloatConfigKey SPREAD = new FloatConfigKey("spread", 0.02f, 0.0f, 0.1f);
+    public static final FloatConfigKey SPREAD = new FloatConfigKey("spread", 0.03f, 0.0f, 0.1f);
 
-    public static final UVLayoutConfigKey LEFT_UV_LAYOUT = new UVLayoutConfigKey("left_uv_layout", UVLayout.DEFAULT_LEFT);
-    public static final UVLayoutConfigKey RIGHT_UV_LAYOUT = new UVLayoutConfigKey("right_uv_layout", UVLayout.DEFAULT_RIGHT);
+    public static final FloatConfigKey CLEAVAGE = new FloatConfigKey("cleavage", 0.02f, 0.0f, 0.1f);
+
+    public static final UVLayoutConfigKey LEFT_UV_LAYOUT = new UVLayoutConfigKey("left_uv_layout",
+            UVLayout.DEFAULT_LEFT);
+
+    public static final UVLayoutConfigKey RIGHT_UV_LAYOUT = new UVLayoutConfigKey("right_uv_layout",
+            UVLayout.DEFAULT_RIGHT);
 
     public static final BooleanConfigKey INDEPENDENT_SIDES = new BooleanConfigKey("independent_sides", true);
 
     public static final BooleanConfigKey PHYSICS_ENABLED = new BooleanConfigKey("physics_enabled", true);
 
-    public static final FloatConfigKey BOUNCE_STRENGTH = new FloatConfigKey("bounce_strength", 0.5f, 0.0f, 1.0f);
+    public static final FloatConfigKey BOUNCE_STRENGTH = new FloatConfigKey("bounce_strength", 0.2f, 0.0f, 1.0f);
 
     public static final FloatConfigKey SOFTNESS = new FloatConfigKey("softness", 0.5f, 0.0f, 1.0f);
 
@@ -44,17 +51,19 @@ public final class AnatomicaConfig {
             Anatomica.id("softbody"),
             () -> AnatomicaRegistries.PHYSICS_ENGINES);
 
-    public static final IdentifierConfigKey MODEL_ID = new IdentifierConfigKey("model", Anatomica.id("box"),
+    public static final IdentifierConfigKey MODEL_ID = new IdentifierConfigKey("model", Anatomica.id("organic"),
             () -> AnatomicaRegistries.MODELS);
 
     public static final BooleanConfigKey SHOW_IN_ARMOR = new BooleanConfigKey("show_in_armor", false);
 
     public static final List<RegisteredKey<?>> ENTRIES = List.of(
+            entry(BREASTS_ENABLED, BodyConfig::breastsEnabled, BodyConfig::setBreastsEnabled),
             entry(SIZE, BodyConfig::size, BodyConfig::setSize),
             entry(OFFSET_X, BodyConfig::offsetX, BodyConfig::setOffsetX),
             entry(OFFSET_Y, BodyConfig::offsetY, BodyConfig::setOffsetY),
             entry(OFFSET_Z, BodyConfig::offsetZ, BodyConfig::setOffsetZ),
             entry(SPREAD, BodyConfig::spread, BodyConfig::setSpread),
+            entry(CLEAVAGE, BodyConfig::cleavage, BodyConfig::setCleavage),
             entry(INDEPENDENT_SIDES, BodyConfig::independentSides, BodyConfig::setIndependentSides),
             entry(PHYSICS_ENABLED, BodyConfig::physicsEnabled, BodyConfig::setPhysicsEnabled),
             entry(BOUNCE_STRENGTH, BodyConfig::bounceStrength, BodyConfig::setBounceStrength),

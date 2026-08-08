@@ -103,6 +103,17 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .entity(() -> Minecraft.getInstance().player)
                 .build());
 
+        addRenderableWidget(FranklyCheckbox.builder()
+                .bounds(x, y, 14, 14)
+                .label(Component.translatable("option.anatomica.enable_breasts"))
+                .checked(working.breastsEnabled())
+                .onToggle(value -> {
+                    working.setBreastsEnabled(value);
+                    pushToServer();
+                })
+                .build());
+        y += ROW_HEIGHT;
+
         addRenderableWidget(sizeSlider(x, y, sliderWidth));
         y += ROW_HEIGHT;
         addRenderableWidget(offsetSlider("offset_x", x, y, sliderWidth, working.offsetX(), working::setOffsetX));
@@ -297,7 +308,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .bounds(rightX, ry, rightWidth, 18)
                 .message(Component.translatable("option.anatomica.reset_uv"))
                 .onPress(btn -> {
-                    UVLayout defaultLayout = currentUvSide == Side.LEFT ? UVLayout.DEFAULT_LEFT : UVLayout.DEFAULT_RIGHT;
+                    UVLayout defaultLayout = currentUvSide == Side.LEFT ? UVLayout.DEFAULT_LEFT
+                            : UVLayout.DEFAULT_RIGHT;
                     commitUv.accept(defaultLayout.copy());
                     rebuildWidgets();
                 })
@@ -345,7 +357,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
         return FranklySlider.builder()
                 .bounds(x, y, width, 20)
                 .range(AnatomicaConfig.SPREAD.min(), AnatomicaConfig.SPREAD.max())
-                .step(0.005)
+                .step(0.001)
                 .initialValue(working.spread())
                 .label(Component.translatable("option.anatomica.spread"))
                 .formatterString(v -> String.format("%.3f", v))

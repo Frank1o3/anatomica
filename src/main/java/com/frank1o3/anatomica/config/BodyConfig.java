@@ -11,7 +11,7 @@ import net.minecraft.resources.Identifier;
  * network code share exactly one read/write path.
  */
 public final class BodyConfig {
-
+    private boolean breastsEnabled = AnatomicaConfig.BREASTS_ENABLED.defaultValue();
     private float size = AnatomicaConfig.SIZE.defaultValue();
     private float offsetX = AnatomicaConfig.OFFSET_X.defaultValue();
     private float offsetY = AnatomicaConfig.OFFSET_Y.defaultValue();
@@ -19,6 +19,7 @@ public final class BodyConfig {
     private UVLayout leftUvLayout = AnatomicaConfig.LEFT_UV_LAYOUT.defaultValue();
     private UVLayout rightUvLayout = AnatomicaConfig.RIGHT_UV_LAYOUT.defaultValue();
     private float spread = AnatomicaConfig.SPREAD.defaultValue();
+    private float cleavage = AnatomicaConfig.CLEAVAGE.defaultValue();
     private boolean independentSides = AnatomicaConfig.INDEPENDENT_SIDES.defaultValue();
     private boolean physicsEnabled = AnatomicaConfig.PHYSICS_ENABLED.defaultValue();
     private float bounceStrength = AnatomicaConfig.BOUNCE_STRENGTH.defaultValue();
@@ -33,6 +34,14 @@ public final class BodyConfig {
     // -------------------------------------------------------------------
     // Getters / setters
     // -------------------------------------------------------------------
+
+    public boolean breastsEnabled() {
+        return breastsEnabled;
+    }
+
+    public void setBreastsEnabled(boolean value) {
+        this.breastsEnabled = value;
+    }
 
     public float size() {
         return size;
@@ -88,6 +97,14 @@ public final class BodyConfig {
 
     public void setSpread(float value) {
         this.spread = AnatomicaConfig.SPREAD.clamp(value);
+    }
+
+    public float cleavage() {
+        return cleavage;
+    }
+
+    public void setCleavage(float value) {
+        this.cleavage = AnatomicaConfig.CLEAVAGE.clamp(value);
     }
 
     public boolean independentSides() {

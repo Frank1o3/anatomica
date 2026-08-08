@@ -39,7 +39,7 @@ public final class ModelMeshCache {
                 float qw = quad.x2() - quad.x1();
                 float qh = quad.y2() - quad.y1();
                 u = (quad.x1() + v.u() * qw) / TEXTURE_SIZE;
-                vv = (quad.y1() + v.v() * qh) / TEXTURE_SIZE;
+                vv = (quad.y2() - v.v() * qh) / TEXTURE_SIZE;
             } else {
                 u = v.u();
                 vv = v.v();
