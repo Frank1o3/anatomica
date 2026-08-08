@@ -3,13 +3,14 @@
 	"id": "anatomica",
 	"version": "${version}",
 	"name": "Anatomica",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A hobby Fabric mod for configurable, physics-driven player body attachments. Inspired by Female Gender Mod; not a replacement.",
 	"authors": [
 		"Frank1o3"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/Frank1o3/anatomica",
+		"sources": "https://github.com/Frank1o3/anatomica",
+		"issues": "https://github.com/Frank1o3/anatomica/issues"
 	},
 	"license": "BSD 3-Clause",
 	"icon": "assets/anatomica/icon.png",
