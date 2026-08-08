@@ -38,19 +38,19 @@ public final class BoxDeformableModel implements IDeformableModel {
 
         // Helper to add a quad face (4 vertices + 6 indices)
         // Vertices are added in order: bottom-left (0,0), bottom-right (1,0), top-right (1,1), top-left (0,1)
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ), new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), null); // Back
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(hx, -hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(-hx, hy, maxZ), UVDirection.NORTH); // Front
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(-hx, -hy, minZ), new Vec3(-hx, hy, minZ), new Vec3(-hx, hy, maxZ), UVDirection.WEST); // Left
-        addFace(vertexList, indexList, nodeRest, new Vec3(hx, -hy, minZ), new Vec3(hx, -hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), UVDirection.EAST); // Right
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ), new Vec3(hx, -hy, maxZ), new Vec3(-hx, -hy, maxZ), UVDirection.UP); // Top (-hy)
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), UVDirection.DOWN); // Bottom (+hy)
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ), new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), null, false); // Back
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(hx, -hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(-hx, hy, maxZ), UVDirection.NORTH, true); // Front
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(-hx, -hy, minZ), new Vec3(-hx, hy, minZ), new Vec3(-hx, hy, maxZ), UVDirection.WEST, false); // Left
+        addFace(vertexList, indexList, nodeRest, new Vec3(hx, -hy, minZ), new Vec3(hx, -hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), UVDirection.EAST, false); // Right
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ), new Vec3(hx, -hy, maxZ), new Vec3(-hx, -hy, maxZ), UVDirection.UP, true); // Top (-hy)
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), UVDirection.DOWN, false); // Bottom (+hy)
 
         vertices = vertexList.toArray(new ModelVertex[0]);
         indices = indexList.stream().mapToInt(Integer::intValue).toArray();
     }
 
     private static void addFace(List<ModelVertex> vertexList, List<Integer> indexList, Vec3[] nodeRest,
-                                Vec3 v0, Vec3 v1, Vec3 v2, Vec3 v3, UVDirection dir) {
+                                Vec3 v0, Vec3 v1, Vec3 v2, Vec3 v3, UVDirection dir, boolean reverseWinding) {
         int base = vertexList.size();
         float[][] uvs = { { 0f, 0f }, { 1f, 0f }, { 1f, 1f }, { 0f, 1f } };
         Vec3[] positions = { v0, v1, v2, v3 };
@@ -60,13 +60,14 @@ public final class BoxDeformableModel implements IDeformableModel {
             vertexList.add(new ModelVertex(positions[i], uvs[i][0], uvs[i][1], dir, w.influences(), w.weights()));
         }
 
-        // Two triangles CCW: (0, 1, 2) and (0, 2, 3)
+        // Two outward-facing triangles. Front and top parameterizations run in
+        // the opposite direction and therefore need their winding reversed.
         indexList.add(base);
-        indexList.add(base + 1);
-        indexList.add(base + 2);
+        indexList.add(reverseWinding ? base + 2 : base + 1);
+        indexList.add(reverseWinding ? base + 1 : base + 2);
         indexList.add(base);
-        indexList.add(base + 2);
-        indexList.add(base + 3);
+        indexList.add(reverseWinding ? base + 3 : base + 2);
+        indexList.add(reverseWinding ? base + 2 : base + 3);
     }
 
     @Override

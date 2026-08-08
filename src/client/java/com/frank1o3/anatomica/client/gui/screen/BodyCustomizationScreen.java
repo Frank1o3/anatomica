@@ -124,6 +124,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
         y += ROW_HEIGHT;
         addRenderableWidget(spreadSlider(x, y, sliderWidth));
         y += ROW_HEIGHT + 4;
+        addRenderableWidget(cleavageSlider(x, y, sliderWidth));
+        y += ROW_HEIGHT + 4;
 
         addRenderableWidget(FranklyCheckbox.builder()
                 .bounds(x, y, 14, 14)
@@ -362,6 +364,19 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .label(Component.translatable("option.anatomica.spread"))
                 .formatterString(v -> String.format("%.3f", v))
                 .onValueChanged(v -> working.setSpread((float) (double) v))
+                .onValueCommitted(v -> pushToServer())
+                .build();
+    }
+
+    private FranklySlider cleavageSlider(int x, int y, int width) {
+        return FranklySlider.builder()
+                .bounds(x, y, width, 20)
+                .range(AnatomicaConfig.CLEAVAGE.min(), AnatomicaConfig.CLEAVAGE.max())
+                .step(0.001)
+                .initialValue(working.cleavage())
+                .label(Component.translatable("option.anatomica.cleavage"))
+                .formatterString(v -> String.format("%.3f", v))
+                .onValueChanged(v -> working.setCleavage((float) (double) v))
                 .onValueCommitted(v -> pushToServer())
                 .build();
     }

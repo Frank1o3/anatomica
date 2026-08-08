@@ -5,7 +5,7 @@ import com.frank1o3.franklylib.Vec3;
 /**
  * The subset of a living entity's state a physics engine actually needs to
  * derive
- * per-tick forces (motion delta, pose, swing, vehicle state, a stable random
+ * per-tick forces (position, pose, swing, vehicle state, a stable random
  * source).
  * Kept as a narrow interface rather than depending on {@code LivingEntity}
  * directly so
@@ -20,7 +20,11 @@ import com.frank1o3.franklylib.Vec3;
  */
 public interface LivingEntityLike {
 
-    Vec3 motionDelta();
+    /**
+     * Current world position. Physics engines retain the previous position they
+     * observed and derive a fixed-tick displacement from it.
+     */
+    Vec3 position();
 
     boolean isCrouching();
 
@@ -33,9 +37,13 @@ public interface LivingEntityLike {
     boolean isPassenger();
 
     /**
-     * Walk-cycle phase in {@code [0, 1)}, or {@code 0} if not currently walking.
+     * Raw walk-animation position, in the same units used by vanilla's humanoid
+     * walk cycle.
      */
     float walkAnimationPhase();
+
+    /** Current walk-animation intensity, or {@code 0} while stationary. */
+    float walkAnimationSpeed();
 
     /** Arm-swing progress in {@code [0, 1]}, or {@code 0} if not swinging. */
     float attackSwingProgress(float partialTick);

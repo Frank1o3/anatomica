@@ -27,16 +27,9 @@ import net.minecraft.util.Mth;
  * not
  * vehicle type, so passenger state just generally damps lateral impulse
  * instead.
- * <li>No yaw-rotation "twist" impulse — {@link LivingEntityLike} doesn't
- * currently
- * expose a body-yaw delta. If this driving force is wanted, add a
- * {@code float bodyYawDelta()} method to {@link LivingEntityLike} (and
- * implement it
- * in {@code ClientLivingEntityAdapter} from
- * {@code entity.yBodyRot - entity.yBodyRotO})
- * and wire it into {@link #applyDrivingForces} the same way
- * {@code impY}/{@code impZ}
- * are handled below.
+ * <li>Vehicle handling is intentionally generic. {@link LivingEntityLike}
+ * exposes passenger state but not individual vehicle types, so passenger state
+ * simply damps lateral impulse.
  * <li>Arm-swing impulse is driven by a continuous
  * {@code attackSwingProgress(1.0f)}
  * read each tick rather than the reference's discrete every-Nth-tick sampling
@@ -88,7 +81,10 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
     private final float[] velX, velY, velZ;
     private final float[] interpX, interpY, interpZ;
 
-    private Vec3 lastMotionDelta = Vec3.ZERO;
+    /** The last entity position seen by this engine, for fixed-tick displacement. */
+    private Vec3 previousEntityPosition;
+    /** Vertical gait offset applied to the chest-anchored node layer. */
+    private float walkBaseOffsetY;
     private boolean wasCrouching;
     private boolean wasSleeping;
 
@@ -139,7 +135,8 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
             posZ[i] = prevPosZ[i] = interpZ[i] = rest.z();
             velX[i] = velY[i] = velZ[i] = 0f;
         }
-        lastMotionDelta = Vec3.ZERO;
+        previousEntityPosition = null;
+        walkBaseOffsetY = 0f;
         wasCrouching = false;
         wasSleeping = false;
     }
@@ -164,7 +161,6 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
         enforceBounds();
         deriveVelocities(deltaTime, config);
 
-        lastMotionDelta = entity.motionDelta();
     }
 
     // -------------------------------------------------------------------
@@ -175,17 +171,37 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
     private void applyDrivingForces(LivingEntityLike entity, BodyConfig config, float deltaTime) {
         float bounceIntensity = config.bounceStrength() * 3.0f;
 
-        Vec3 motion = entity.motionDelta();
-        Vec3 motionChange = motion.subtract(lastMotionDelta);
+        // The gait belongs to the attachment/base, not to every simulated node.
+        // Moving only the fixed chest layer lets the free layers lag behind and
+        // settle through the PBD constraints instead of bobbing in lockstep.
+        float walkPhase = entity.walkAnimationPhase();
+        float walkSpeed = entity.walkAnimationSpeed();
+        walkBaseOffsetY = walkSpeed > 0.01f
+                ? Mth.cos(walkPhase * 0.6662f + Mth.PI) * 0.5f * walkSpeed * 0.5f * IMPULSE_SCALE
+                : 0f;
+        updateAnchorPositions();
+
+        Vec3 currentPosition = entity.position();
+        if (previousEntityPosition == null) {
+            // There is no displacement to simulate until this engine has seen a
+            // complete client tick. This avoids a false impulse when it is first
+            // created or when the entity enters render distance.
+            previousEntityPosition = currentPosition;
+            return;
+        }
+        Vec3 motion = currentPosition.subtract(previousEntityPosition);
+        previousEntityPosition = currentPosition;
 
         float impX = 0f;
         float impY = 0f;
         float impZ = 0f;
 
-        // Inertial bounce from sudden motion changes (landing, direction change, jump).
-        impY += -motionChange.y() * bounceIntensity * 2.0f;
-        impX += -motionChange.x() * bounceIntensity * 1.5f;
-        impZ += -motionChange.z() * bounceIntensity * 1.5f;
+        // The breast lags behind the body's vertical displacement: on ascent it
+        // moves downward relative to the chest, and while falling it lifts.
+        // Position displacement captures both behaviours directly at the fixed
+        // client tick rate.
+        impY += -motion.y() * bounceIntensity;
+        impZ += -motion.z() * bounceIntensity * 2.0f;
 
         // Constant resting sag, scaled by the configured size, so the mesh doesn't
         // read as perfectly rigid even when the player stands still.
@@ -196,10 +212,6 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
         if (Math.abs(yawDelta) > 0.01f) {
             impX += -(yawDelta / 15.0f) * bounceIntensity;
         }
-
-        // Walk-cycle oscillation.
-        float walkPhase = entity.walkAnimationPhase();
-        impY += (float) Math.cos(walkPhase * Math.PI * 2.0 + Math.PI) * 0.5f * bounceIntensity;
 
         // Arm swing (simplified continuous version — see class javadoc).
         float swing = entity.attackSwingProgress(1.0f);
@@ -264,6 +276,20 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
             posX[i] += velX[i];
             posY[i] += velY[i];
             posZ[i] += velZ[i];
+        }
+    }
+
+    /** Moves only the fixed back layer; dynamic nodes are pulled along by constraints. */
+    private void updateAnchorPositions() {
+        for (int i = 0; i < posY.length; i++) {
+            if (!layout.fixed()[i]) {
+                continue;
+            }
+            Vec3 rest = layout.restPositions()[i];
+            posX[i] = rest.x();
+            posY[i] = rest.y() + walkBaseOffsetY;
+            posZ[i] = rest.z();
+            velX[i] = velY[i] = velZ[i] = 0f;
         }
     }
 

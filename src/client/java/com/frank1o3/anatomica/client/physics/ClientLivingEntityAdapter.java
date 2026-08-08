@@ -13,7 +13,7 @@ import net.minecraft.world.entity.LivingEntity;
  * Note: {@code walkAnimation}/{@code getAttackAnim} field and method names are best-
  * effort against typical Yarn/Mojmap-style naming for this era of the game — verify
  * against your actual mappings (IDE autocomplete on {@code entity.} will show the real
- * names if these don't resolve) and adjust {@link #walkAnimationPhase()} /
+ * names if these don't resolve) and adjust the walk-animation accessors /
  * {@link #attackSwingProgress(float)} accordingly.
  */
 public final class ClientLivingEntityAdapter implements LivingEntityLike {
@@ -25,9 +25,9 @@ public final class ClientLivingEntityAdapter implements LivingEntityLike {
     }
 
     @Override
-    public Vec3 motionDelta() {
-        net.minecraft.world.phys.Vec3 delta = entity.getDeltaMovement();
-        return new Vec3((float) delta.x, (float) delta.y, (float) delta.z);
+    public Vec3 position() {
+        net.minecraft.world.phys.Vec3 position = entity.position();
+        return new Vec3((float) position.x, (float) position.y, (float) position.z);
     }
 
     @Override
@@ -57,9 +57,12 @@ public final class ClientLivingEntityAdapter implements LivingEntityLike {
 
     @Override
     public float walkAnimationPhase() {
-        return entity.walkAnimation.speed() > 0.01f
-                ? (entity.walkAnimation.position() / 13.0f) % 1.0f
-                : 0.0f;
+        return entity.walkAnimation.position();
+    }
+
+    @Override
+    public float walkAnimationSpeed() {
+        return entity.walkAnimation.speed();
     }
 
     @Override

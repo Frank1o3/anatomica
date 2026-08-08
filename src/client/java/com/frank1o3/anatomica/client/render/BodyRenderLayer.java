@@ -10,7 +10,6 @@ import com.frank1o3.anatomica.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.franklylib.Vec3;
 import com.frank1o3.franklylib.client.render.AttachmentPoint;
-import com.frank1o3.franklylib.client.render.FranklyAttachmentRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
@@ -22,6 +21,7 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 
 import java.util.Map;
 import java.util.UUID;
@@ -93,7 +93,7 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
     private void renderSide(PoseStack poseStack, SubmitNodeCollector renderQueue, S renderState,
             int packedLight, IDeformableModel model, UVLayout layout, IPhysicsEngine engine,
             AttachmentPoint attachment, RenderType renderType, float partialTick) {
-        FranklyAttachmentRenderer.render(
+        AnatomicaAttachmentRenderer.render(
                 poseStack, renderQueue, renderState, getParentModel(), attachment,
                 ModelMeshCache.get(model, layout), new BoundMeshDeformer(model, engine),
                 renderType, packedLight, 0, 0xFFFFFFFF, partialTick);
@@ -111,7 +111,12 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
                 BASE_Y_OFFSET + config.offsetY(),
                 BASE_Z_OFFSET - config.offsetZ());
         float scale = 0.5f + config.size();
-        return new AttachmentPoint(BODY_TARGET_PART, offset, Vec3.ZERO, scale);
+        // Cleavage is a presentation setting: rotate each breast away from the
+        // centre of the chest around its anchored back layer. It deliberately
+        // does not enter the physics simulation.
+        float outwardAngle = Math.min(config.cleavage() * 100f, 10f) * Mth.DEG_TO_RAD;
+        Vec3 rotation = new Vec3(0f, -side * outwardAngle, 0f);
+        return new AttachmentPoint(BODY_TARGET_PART, offset, rotation, scale);
     }
 
     private IDeformableModel resolveModel(Identifier modelId) {

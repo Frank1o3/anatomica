@@ -62,12 +62,21 @@ public final class OrganicMeshDeformableModel implements IDeformableModel {
                     int b = base + y * vertsPerRow + x + 1;
                     int c = base + (y + 1) * vertsPerRow + x;
                     int d = base + (y + 1) * vertsPerRow + x + 1;
-                    indexList.add(a);
-                    indexList.add(b);
-                    indexList.add(c);
-                    indexList.add(b);
-                    indexList.add(d);
-                    indexList.add(c);
+                    if (faceHasReversedWinding(face)) {
+                        indexList.add(a);
+                        indexList.add(c);
+                        indexList.add(b);
+                        indexList.add(b);
+                        indexList.add(c);
+                        indexList.add(d);
+                    } else {
+                        indexList.add(a);
+                        indexList.add(b);
+                        indexList.add(c);
+                        indexList.add(b);
+                        indexList.add(d);
+                        indexList.add(c);
+                    }
                 }
             }
         }
@@ -93,6 +102,11 @@ public final class OrganicMeshDeformableModel implements IDeformableModel {
             case 5 -> UVDirection.DOWN;  // bottom (+hy)
             default -> null;             // back (attachment)
         };
+    }
+
+    /** Faces whose parameterization produces an inward normal in the default order. */
+    private static boolean faceHasReversedWinding(int face) {
+        return face == 1 || face == 3 || face == 4;
     }
 
     private static Vec3 faceVertex(int face, float u, float v, float hx, float hy, float minZ, float maxZ) {
