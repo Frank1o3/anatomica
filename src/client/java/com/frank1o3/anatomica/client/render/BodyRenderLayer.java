@@ -115,7 +115,7 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
         // centre of the chest around its anchored back layer. It deliberately
         // does not enter the physics simulation.
         float outwardAngle = Math.min(config.cleavage() * 100f, 10f) * Mth.DEG_TO_RAD;
-        Vec3 rotation = new Vec3(0f, -side * outwardAngle, 0f);
+        Vec3 rotation = new Vec3(0f, side * outwardAngle, 0f);
         return new AttachmentPoint(BODY_TARGET_PART, offset, rotation, scale);
     }
 

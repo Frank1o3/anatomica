@@ -26,6 +26,7 @@ public final class FaceUVPicker extends AbstractWidget {
     private static final int TEXTURE_SIZE = 64;
     private static final int HANDLE_RADIUS = 3;
 
+    @SuppressWarnings("unused")
     private final int side; // -1 for Left, 1 for Right
     private final Consumer<UVLayout> onCommit;
     private final Consumer<UVDirection> onSelectFace;
