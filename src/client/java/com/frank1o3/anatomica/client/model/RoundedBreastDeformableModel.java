@@ -17,9 +17,11 @@ import java.util.List;
  * box and organic models, its visible surface is a rounded dome that reaches
  * the chest at its perimeter rather than retaining cuboid side walls.
  *
- * <p>The whole surface uses the front UV rectangle. That intentionally avoids
+ * <p>
+ * The whole surface uses the front UV rectangle. That intentionally avoids
  * pretending a non-box shape has separate rectangular side faces; the usual
- * front torso texture remains continuous over the curved surface.</p>
+ * front torso texture remains continuous over the curved surface.
+ * </p>
  */
 public final class RoundedBreastDeformableModel implements IDeformableModel {
 
@@ -47,14 +49,15 @@ public final class RoundedBreastDeformableModel implements IDeformableModel {
                 float nx = x / SoftbodyGridLayout.HALF_WIDTH;
                 float ny = y / SoftbodyGridLayout.HALF_HEIGHT;
                 float radialSquared = Math.min(1f, nx * nx + ny * ny);
-                // A softened hemisphere: the centre has full projection while
-                // the edge meets the chest anchor smoothly.
                 float depthFactor = (float) Math.pow(1f - radialSquared, 0.55f);
-                Vec3 position = new Vec3(x, y, -SoftbodyGridLayout.DEPTH * depthFactor);
+                Vec3 position = new Vec3(x, y,
+                        -SoftbodyGridLayout.DEPTH * depthFactor);
+
+                float textureV = 1f - v;
 
                 NodeWeighting.Result weighting = NodeWeighting.nearest(position, nodeRest,
                         INFLUENCES_PER_VERTEX);
-                vertexList.add(new ModelVertex(position, u, v, UVDirection.NORTH,
+                vertexList.add(new ModelVertex(position, u, textureV, UVDirection.NORTH,
                         weighting.influences(), weighting.weights()));
             }
         }

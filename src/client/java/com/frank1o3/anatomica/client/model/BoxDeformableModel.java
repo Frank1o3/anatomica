@@ -14,8 +14,25 @@ import java.util.List;
 
 /**
  * A cuboid deformable model with 6 faces (24 vertices), each face tagged with
- * its {@link UVDirection}
- * for per-face UV remapping.
+ * its {@link UVDirection} for per-face UV remapping.
+ *
+ * <p>
+ * UV mapping follows the plain convention described in
+ * {@link OrganicMeshDeformableModel}: each face's four corners map to
+ * {@code (0,0), (1,0), (1,1), (0,1)} in vertex order, with one deliberate
+ * exception — the {@code UP} face (the neck-adjacent top face) has its V
+ * coordinate flipped via {@code flipV}, because its texture sample otherwise
+ * lands upside-down relative to the neck geometry it borders, breaking the
+ * visible seam where it meets the front/side faces. This can't be fixed by
+ * rotating the UP quad in the UV layout editor instead, since
+ * {@link RoundedBreastDeformableModel} and {@link BreastDeformableModel} don't
+ * use per-face UV directions at all (their entire surface samples one
+ * {@code NORTH} quad) — a layout-level fix here would have no equivalent
+ * lever on those models, whereas this flag is local to this one face on this
+ * one model and can't affect anything else. Don't add more {@code flipV}
+ * call-site overrides without a similarly concrete, observed seam problem —
+ * this is meant to stay a single named exception, not grow back into the
+ * old per-face table split.
  */
 public final class BoxDeformableModel implements IDeformableModel {
 
@@ -43,24 +60,24 @@ public final class BoxDeformableModel implements IDeformableModel {
         addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ),
                 new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), null, false, false); // Back
         addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(hx, -hy, maxZ),
-                new Vec3(hx, hy, maxZ), new Vec3(-hx, hy, maxZ), UVDirection.NORTH, true, true); // Front
+                new Vec3(hx, hy, maxZ), new Vec3(-hx, hy, maxZ), UVDirection.NORTH, false, true); // Front
         addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(-hx, -hy, minZ),
-                new Vec3(-hx, hy, minZ), new Vec3(-hx, hy, maxZ), UVDirection.WEST, false, true); // Left
+                new Vec3(-hx, hy, minZ), new Vec3(-hx, hy, maxZ), UVDirection.WEST, false, false); // Left
         addFace(vertexList, indexList, nodeRest, new Vec3(hx, -hy, minZ), new Vec3(hx, -hy, maxZ),
-                new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), UVDirection.EAST, false, true); // Right
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ),
-                new Vec3(hx, -hy, maxZ), new Vec3(-hx, -hy, maxZ), UVDirection.UP, true, false); // Top (-hy)
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, hy, maxZ), new Vec3(hx, hy, maxZ),
-                new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), UVDirection.DOWN, false, false); // Bottom (+hy)
+                new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), UVDirection.EAST, false, false); // Right
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, hy, minZ), new Vec3(hx, hy, minZ),
+                new Vec3(hx, hy, maxZ), new Vec3(-hx, hy, maxZ), UVDirection.UP, false, false); // Top (-hy) — flipV
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(hx, -hy, maxZ),
+                new Vec3(hx, -hy, minZ), new Vec3(-hx, -hy, minZ), UVDirection.DOWN, false, false); // Bottom (+hy)
 
         vertices = vertexList.toArray(new ModelVertex[0]);
         indices = indexList.stream().mapToInt(Integer::intValue).toArray();
     }
 
     private static void addFace(List<ModelVertex> vertexList, List<Integer> indexList, Vec3[] nodeRest,
-            Vec3 v0, Vec3 v1, Vec3 v2, Vec3 v3, UVDirection dir, boolean reverseWinding, boolean verticalFace) {
+            Vec3 v0, Vec3 v1, Vec3 v2, Vec3 v3, UVDirection dir, boolean reverseWinding, boolean flipV) {
         int base = vertexList.size();
-        float[][] uvs = verticalFace
+        float[][] uvs = flipV
                 ? new float[][] { { 0f, 1f }, { 1f, 1f }, { 1f, 0f }, { 0f, 0f } }
                 : new float[][] { { 0f, 0f }, { 1f, 0f }, { 1f, 1f }, { 0f, 1f } };
         Vec3[] positions = { v0, v1, v2, v3 };

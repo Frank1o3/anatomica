@@ -265,6 +265,6 @@ jobs:
           dependencies: |-
             [{
                 "project_id": "T3ajKLA0",
-                "version_id": "kWNdmESV",
+                "version_id": "gm5ytEj8",
                 "dependency_type": "required"
             }]

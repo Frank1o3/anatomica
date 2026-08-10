@@ -8,6 +8,7 @@ import com.frank1o3.anatomica.uv.UVDirection;
 import com.frank1o3.franklylib.Vec3;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,32 +16,51 @@ import java.util.List;
 /**
  * A smooth, chest-anchored breast profile for the soft-body engine.
  *
- * <p>Unlike {@link RoundedBreastDeformableModel} (a symmetric flattened dome), this
- * model biases the projection peak below the geometric center and stretches the lower
+ * <p>
+ * Unlike {@link RoundedBreastDeformableModel} (a symmetric flattened dome),
+ * this
+ * model biases the projection peak below the geometric center and stretches the
+ * lower
  * half of the falloff further than the upper half, so the silhouette reads as a
- * teardrop rather than a hemisphere. A secondary, smaller-radius bump is layered on
- * top near the biased peak to suggest a nipple without introducing a hard seam.
+ * teardrop rather than a hemisphere.
  *
- * <p>The whole surface still uses the front UV rectangle — a non-box shape doesn't
- * get pretend rectangular side faces; the usual front torso texture stays continuous
- * over the curved surface.
+ * <p>
+ * The whole surface still uses the front UV rectangle — a non-box shape doesn't
+ * get pretend rectangular side faces; the usual front torso texture (including
+ * the
+ * player's own clothing layer, since this mod renders over whatever the player
+ * is
+ * wearing) stays continuous over the curved surface. No separate nipple/areola
+ * geometry is generated — that detail is left entirely to the skin texture
+ * itself.
  */
 public final class BreastDeformableModel implements IDeformableModel {
-
-    private static final int SUBDIVISIONS = 28;
-    private static final int INFLUENCES_PER_VERTEX = 14;
+    private static final int SUBDIVISIONS = 24;
+    private static final int INFLUENCES_PER_VERTEX = 8;
     private static final Identifier ID = Anatomica.id("breast");
 
-    /** How far below dead-center (in normalized [-1,1] space) the mound's peak sits. */
+    /**
+     * How far below dead-center (in normalized [-1,1] space) the mound's peak sits.
+     */
     private static final float VERTICAL_BIAS = 0.18f;
-    /** Falloff stretch above the biased center — smaller = tapers off sooner (flatter top). */
-    private static final float UPPER_FULLNESS = 0.90f;
-    /** Falloff stretch below the biased center — larger = reaches further (fuller underside). */
-    private static final float LOWER_FULLNESS = 1.30f;
-    /** Extra forward protrusion of the nipple bump, as a fraction of DEPTH. */
-    private static final float NIPPLE_HEIGHT = 0.16f;
-    /** Radius (normalized) of the nipple bump's falloff — smaller = a tighter, more defined tip. */
-    private static final float NIPPLE_RADIUS = 0.32f;
+    /**
+     * Falloff reach above the biased center. Larger = the surface stays projected
+     * further before going flush with the chest (fuller); smaller = it tapers off
+     * sooner (flatter). Divides {@code biasedNy}, so this is a "reach" value, not a
+     * multiplier — do not flip this back to multiplication without also flipping
+     * which value is larger, or the flush-point direction inverts (see the bug this
+     * replaced: multiplying by a *larger* lower value made the bottom taper off
+     * *sooner*, cutting it short instead of extending it).
+     */
+    private static final float UPPER_REACH = 0.9f;
+    /**
+     * Falloff reach below the biased center — larger than {@link #UPPER_REACH} so
+     * the underside projects further before going flush, giving a fuller lower
+     * curve.
+     */
+    private static final float LOWER_REACH = 1.05f;
+    private static final float HORIZONTAL_REACH = 1.1f; // 1.0 = current width; <1 narrower/close-set, >1 wider/side-set
+    private static final float CONE_MIX = 0.15f; // 0 = fully rounded dome, 1 = fully tapered/conical profile
 
     private final ModelVertex[] vertices;
     private final int[] indices;
@@ -62,32 +82,33 @@ public final class BreastDeformableModel implements IDeformableModel {
                 float nx = x / SoftbodyGridLayout.HALF_WIDTH;
                 float ny = y / SoftbodyGridLayout.HALF_HEIGHT;
 
-                // Bias the mound's peak below dead-center and stretch the lower half's
-                // falloff further than the upper half's, so the profile reads as a
-                // teardrop instead of a symmetric dome.
                 float biasedNy = ny - VERTICAL_BIAS;
-                float fullness = biasedNy >= 0f ? UPPER_FULLNESS : LOWER_FULLNESS;
-                float scaledNy = biasedNy * fullness;
+                float reach = biasedNy >= 0f ? UPPER_REACH : LOWER_REACH;
+                float scaledNy = biasedNy / reach;
 
-                float radialSquared = Math.min(1f, nx * nx + scaledNy * scaledNy);
-                float depthFactor = (float) Math.pow(1f - radialSquared, 0.55f);
+                float scaledNx = nx / HORIZONTAL_REACH;
+                float radialSquared = Math.min(1f,
+                        scaledNx * scaledNx * 1.1f + // slightly wider horizontally
+                                scaledNy * scaledNy * 0.9f // slightly compressed vertically
+                );
+                float roundedFactor = smoothFalloff(1f - radialSquared);
+                float conicalFactor = Mth.clamp(1f - (float) Math.sqrt(radialSquared), 0f, 1f);
+                float depthFactor = roundedFactor * (1f - CONE_MIX) + conicalFactor * CONE_MIX * conicalFactor;
+                float gravity = Mth.clamp((ny + 1f) * 0.5f, 0f, 1f); // 0 bottom → 1 top
+                depthFactor *= Mth.lerp(1.1f, 0.85f, gravity);
 
-                // Nipple bump: a smaller, steeper secondary protrusion centered a bit
-                // below the base mound's own peak, blended in with a smooth falloff
-                // rather than a hard point so it doesn't create a visible seam.
-                float dnx = nx;
-                float dny = ny - VERTICAL_BIAS * 0.6f;
-                float nippleDistSquared = (dnx * dnx + dny * dny) / (NIPPLE_RADIUS * NIPPLE_RADIUS);
-                float nippleFactor = nippleDistSquared < 1f
-                        ? (float) Math.pow(1f - nippleDistSquared, 2.0) * NIPPLE_HEIGHT
-                        : 0f;
-
-                float z = -SoftbodyGridLayout.DEPTH * depthFactor - SoftbodyGridLayout.DEPTH * nippleFactor;
+                float z = -SoftbodyGridLayout.DEPTH * depthFactor;
                 Vec3 position = new Vec3(x, y, z);
+
+                // v drives the mesh's actual Y position above and must stay as-is for
+                // geometry. The texture V coordinate is a separate concern — inverted
+                // here so the neck/collarbone area of the UV quad lands at the top of
+                // the mesh (near the attachment point) instead of the bottom.
+                float textureV = 1f - v;
 
                 NodeWeighting.Result weighting = NodeWeighting.nearest(position, nodeRest,
                         INFLUENCES_PER_VERTEX);
-                vertexList.add(new ModelVertex(position, u, v, UVDirection.NORTH,
+                vertexList.add(new ModelVertex(position, u, textureV, UVDirection.NORTH,
                         weighting.influences(), weighting.weights()));
             }
         }
@@ -112,6 +133,17 @@ public final class BreastDeformableModel implements IDeformableModel {
 
         vertices = vertexList.toArray(new ModelVertex[0]);
         indices = indexList.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    private static float smoothFalloff(float t) {
+        // t in [0,1]: 0 at the flush boundary, 1 at the peak. Using t*t*(3-2t)
+        // (cubic smoothstep) instead of Math.pow(t, exponent<1) gives zero slope
+        // at both ends — the old pow(t, 0.55) had an unbounded slope at t=0 (the
+        // flush boundary), which pinched triangles into near-zero-area folds
+        // right at that ring, especially near the vertically-biased apex where
+        // the boundary is crossed at a steeper angle. This trades a slightly
+        // rounder peak for a boundary that closes cleanly.
+        return t * t * (3f - 2f * t);
     }
 
     @Override
