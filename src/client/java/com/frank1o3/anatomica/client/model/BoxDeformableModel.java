@@ -13,7 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A cuboid deformable model with 6 faces (24 vertices), each face tagged with its {@link UVDirection}
+ * A cuboid deformable model with 6 faces (24 vertices), each face tagged with
+ * its {@link UVDirection}
  * for per-face UV remapping.
  */
 public final class BoxDeformableModel implements IDeformableModel {
@@ -37,22 +38,31 @@ public final class BoxDeformableModel implements IDeformableModel {
         List<Integer> indexList = new ArrayList<>();
 
         // Helper to add a quad face (4 vertices + 6 indices)
-        // Vertices are added in order: bottom-left (0,0), bottom-right (1,0), top-right (1,1), top-left (0,1)
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ), new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), null, false); // Back
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(hx, -hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(-hx, hy, maxZ), UVDirection.NORTH, true); // Front
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(-hx, -hy, minZ), new Vec3(-hx, hy, minZ), new Vec3(-hx, hy, maxZ), UVDirection.WEST, false); // Left
-        addFace(vertexList, indexList, nodeRest, new Vec3(hx, -hy, minZ), new Vec3(hx, -hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), UVDirection.EAST, false); // Right
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ), new Vec3(hx, -hy, maxZ), new Vec3(-hx, -hy, maxZ), UVDirection.UP, true); // Top (-hy)
-        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, hy, maxZ), new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), UVDirection.DOWN, false); // Bottom (+hy)
+        // Vertices are added in order: bottom-left (0,0), bottom-right (1,0), top-right
+        // (1,1), top-left (0,1)
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ),
+                new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), null, false, false); // Back
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(hx, -hy, maxZ),
+                new Vec3(hx, hy, maxZ), new Vec3(-hx, hy, maxZ), UVDirection.NORTH, true, true); // Front
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(-hx, -hy, minZ),
+                new Vec3(-hx, hy, minZ), new Vec3(-hx, hy, maxZ), UVDirection.WEST, false, true); // Left
+        addFace(vertexList, indexList, nodeRest, new Vec3(hx, -hy, minZ), new Vec3(hx, -hy, maxZ),
+                new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), UVDirection.EAST, false, true); // Right
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ),
+                new Vec3(hx, -hy, maxZ), new Vec3(-hx, -hy, maxZ), UVDirection.UP, true, false); // Top (-hy)
+        addFace(vertexList, indexList, nodeRest, new Vec3(-hx, hy, maxZ), new Vec3(hx, hy, maxZ),
+                new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), UVDirection.DOWN, false, false); // Bottom (+hy)
 
         vertices = vertexList.toArray(new ModelVertex[0]);
         indices = indexList.stream().mapToInt(Integer::intValue).toArray();
     }
 
     private static void addFace(List<ModelVertex> vertexList, List<Integer> indexList, Vec3[] nodeRest,
-                                Vec3 v0, Vec3 v1, Vec3 v2, Vec3 v3, UVDirection dir, boolean reverseWinding) {
+            Vec3 v0, Vec3 v1, Vec3 v2, Vec3 v3, UVDirection dir, boolean reverseWinding, boolean verticalFace) {
         int base = vertexList.size();
-        float[][] uvs = { { 0f, 0f }, { 1f, 0f }, { 1f, 1f }, { 0f, 1f } };
+        float[][] uvs = verticalFace
+                ? new float[][] { { 0f, 1f }, { 1f, 1f }, { 1f, 0f }, { 0f, 0f } }
+                : new float[][] { { 0f, 0f }, { 1f, 0f }, { 1f, 1f }, { 0f, 1f } };
         Vec3[] positions = { v0, v1, v2, v3 };
 
         for (int i = 0; i < 4; i++) {

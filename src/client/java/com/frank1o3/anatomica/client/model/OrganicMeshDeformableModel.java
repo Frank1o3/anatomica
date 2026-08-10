@@ -13,9 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A subdivided-cuboid mesh (a grid of quads per face rather than one quad per face),
+ * A subdivided-cuboid mesh (a grid of quads per face rather than one quad per
+ * face),
  * producing a visibly smoother deformation than {@link BoxDeformableModel}.
- * Each face's vertices are pre-tagged with their corresponding {@link UVDirection}.
+ * Each face's vertices are pre-tagged with their corresponding
+ * {@link UVDirection}.
  */
 public final class OrganicMeshDeformableModel implements IDeformableModel {
 
@@ -96,31 +98,37 @@ public final class OrganicMeshDeformableModel implements IDeformableModel {
     private static UVDirection faceDirection(int face) {
         return switch (face) {
             case 1 -> UVDirection.NORTH; // front
-            case 2 -> UVDirection.WEST;  // left
-            case 3 -> UVDirection.EAST;  // right
-            case 4 -> UVDirection.UP;    // top (-hy)
-            case 5 -> UVDirection.DOWN;  // bottom (+hy)
-            default -> null;             // back (attachment)
+            case 2 -> UVDirection.WEST; // left
+            case 3 -> UVDirection.EAST; // right
+            case 4 -> UVDirection.UP; // top (-hy)
+            case 5 -> UVDirection.DOWN; // bottom (+hy)
+            default -> null; // back (attachment)
         };
     }
 
-    /** Faces whose parameterization produces an inward normal in the default order. */
+    /**
+     * Faces whose parameterization produces an inward normal in the default order.
+     */
     private static boolean faceHasReversedWinding(int face) {
         return face == 1 || face == 3 || face == 4;
     }
 
     private static Vec3 faceVertex(int face, float u, float v, float hx, float hy, float minZ, float maxZ) {
+        // v is always the vertical axis for the four wall faces: v=1 -> y=-hy ("up"),
+        // v=0 -> y=+hy ("down"), matching ModelMeshCache's flip formula. u is
+        // horizontal
+        // (X for back/front, Z-depth for west/east).
+        float verticalY = -hy + (1f - v) * (hy * 2f);
         float xAcrossU = -hx + u * (hx * 2f);
-        float yAcrossU = -hy + u * (hy * 2f);
-        float yAcrossV = -hy + v * (hy * 2f);
-        float zAcrossV = minZ + v * (maxZ - minZ);
+        float zAcrossU = minZ + u * (maxZ - minZ);
+        float zAcrossV = minZ + v * (maxZ - minZ); // still used by top/bottom
         return switch (face) {
-            case 0 -> new Vec3(xAcrossU, yAcrossV, minZ);          // back
-            case 1 -> new Vec3(xAcrossU, yAcrossV, maxZ);          // front
-            case 2 -> new Vec3(-hx, yAcrossU, zAcrossV);           // left
-            case 3 -> new Vec3(hx, yAcrossU, zAcrossV);            // right
-            case 4 -> new Vec3(xAcrossU, -hy, zAcrossV);           // top (-hy)
-            default -> new Vec3(xAcrossU, hy, zAcrossV);           // bottom (+hy)
+            case 0 -> new Vec3(xAcrossU, verticalY, minZ); // back
+            case 1 -> new Vec3(xAcrossU, verticalY, maxZ); // front (NORTH)
+            case 2 -> new Vec3(-hx, verticalY, zAcrossU); // left (WEST)
+            case 3 -> new Vec3(hx, verticalY, zAcrossU); // right (EAST)
+            case 4 -> new Vec3(xAcrossU, -hy, zAcrossV); // top
+            default -> new Vec3(xAcrossU, hy, zAcrossV); // bottom
         };
     }
 

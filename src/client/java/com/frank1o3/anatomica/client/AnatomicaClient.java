@@ -3,6 +3,7 @@ package com.frank1o3.anatomica.client;
 import com.frank1o3.anatomica.Anatomica;
 import com.frank1o3.anatomica.client.gui.screen.BodyCustomizationScreen;
 import com.frank1o3.anatomica.client.model.BoxDeformableModel;
+import com.frank1o3.anatomica.client.model.BreastDeformableModel;
 import com.frank1o3.anatomica.client.model.OrganicMeshDeformableModel;
 import com.frank1o3.anatomica.client.model.RoundedBreastDeformableModel;
 import com.frank1o3.anatomica.client.networking.AnatomicaClientNetworking;
@@ -39,6 +40,7 @@ public class AnatomicaClient implements ClientModInitializer {
         Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("box"), BoxDeformableModel::new);
         Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("organic"), OrganicMeshDeformableModel::new);
         Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("rounded"), RoundedBreastDeformableModel::new);
+        Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("breast"), BreastDeformableModel::new);
     }
 
     private void registerKeybind() {

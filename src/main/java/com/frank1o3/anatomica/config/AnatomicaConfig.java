@@ -21,7 +21,7 @@ public final class AnatomicaConfig {
 
     public static final BooleanConfigKey BREASTS_ENABLED = new BooleanConfigKey("breasts_enabled", false);
 
-    public static final FloatConfigKey SIZE = new FloatConfigKey("size", 0.4f, 0.0f, 1.0f);
+    public static final FloatConfigKey SIZE = new FloatConfigKey("size", 0.5f, 0.0f, 1.0f);
 
     public static final FloatConfigKey OFFSET_X = new FloatConfigKey("offset_x", 0.0f, -0.5f, 0.5f);
 
@@ -31,7 +31,7 @@ public final class AnatomicaConfig {
 
     public static final FloatConfigKey SPREAD = new FloatConfigKey("spread", 0.03f, 0.0f, 0.1f);
 
-    public static final FloatConfigKey CLEAVAGE = new FloatConfigKey("cleavage", 0.02f, 0.0f, 0.1f);
+    public static final FloatConfigKey CLEAVAGE = new FloatConfigKey("cleavage", 0.06f, 0.0f, 0.1f);
 
     public static final UVLayoutConfigKey LEFT_UV_LAYOUT = new UVLayoutConfigKey("left_uv_layout",
             UVLayout.DEFAULT_LEFT);
@@ -43,9 +43,9 @@ public final class AnatomicaConfig {
 
     public static final BooleanConfigKey PHYSICS_ENABLED = new BooleanConfigKey("physics_enabled", true);
 
-    public static final FloatConfigKey BOUNCE_STRENGTH = new FloatConfigKey("bounce_strength", 0.2f, 0.0f, 1.0f);
+    public static final FloatConfigKey BOUNCE_STRENGTH = new FloatConfigKey("bounce_strength", 0.25f, 0.0f, 1.0f);
 
-    public static final FloatConfigKey SOFTNESS = new FloatConfigKey("softness", 0.5f, 0.0f, 1.0f);
+    public static final FloatConfigKey SOFTNESS = new FloatConfigKey("softness", 0.35f, 0.0f, 1.0f);
 
     public static final IdentifierConfigKey PHYSICS_ENGINE_ID = new IdentifierConfigKey("physics_engine",
             Anatomica.id("softbody"),
