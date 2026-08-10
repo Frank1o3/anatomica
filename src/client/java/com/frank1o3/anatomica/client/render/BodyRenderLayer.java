@@ -10,6 +10,7 @@ import com.frank1o3.anatomica.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.franklylib.Vec3;
 import com.frank1o3.franklylib.client.render.AttachmentPoint;
+import com.frank1o3.franklylib.client.render.FranklyAttachmentRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
@@ -20,6 +21,7 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
@@ -33,6 +35,12 @@ import org.jetbrains.annotations.Nullable;
  * Attaches the player's configured body model, left and right side, to the
  * "body"
  * attachment point, deformed each frame by that player's physics engine(s).
+ *
+ * <p>
+ * Geometry submission is delegated entirely to FranklyLib's
+ * {@link FranklyAttachmentRenderer} — Anatomica no longer keeps its own copy of
+ * the
+ * attachment-transform/quad-submission code.
  */
 public final class BodyRenderLayer<S extends AvatarRenderState, M extends HumanoidModel<S>> extends RenderLayer<S, M> {
 
@@ -93,17 +101,18 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
     private void renderSide(PoseStack poseStack, SubmitNodeCollector renderQueue, S renderState,
             int packedLight, IDeformableModel model, UVLayout layout, IPhysicsEngine engine,
             AttachmentPoint attachment, RenderType renderType, float partialTick) {
-        AnatomicaAttachmentRenderer.render(
+        FranklyAttachmentRenderer.render(
                 poseStack, renderQueue, renderState, getParentModel(), attachment,
                 ModelMeshCache.get(model, layout), new BoundMeshDeformer(model, engine),
-                renderType, packedLight, 0, 0xFFFFFFFF, partialTick);
+                renderType, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, partialTick);
     }
 
     private static final float BASE_Y_OFFSET = 0.20f;
     private static final float BASE_Z_OFFSET = -0.125f;
 
     private AttachmentPoint buildAttachmentPoint(BodyConfig config, int side) {
-        // In Minecraft model coordinates: +X is character's Left, -X is character's Right.
+        // In Minecraft model coordinates: +X is character's Left, -X is character's
+        // Right.
         // side = -1 is Left breast -> +X. side = 1 is Right breast -> -X.
         float sideSign = -Math.signum(side);
         Vec3 offset = new Vec3(
