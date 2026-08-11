@@ -1,7 +1,8 @@
 package com.frank1o3.anatomica.client.networking;
 
-import com.frank1o3.anatomica.client.config.BodyConfig;
 import com.frank1o3.anatomica.client.data.EntityBodyData;
+import com.frank1o3.anatomica.config.IBodyConfig;
+import com.frank1o3.anatomica.config.Services;
 import com.frank1o3.anatomica.networking.BodySyncPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
@@ -22,7 +23,7 @@ public final class AnatomicaClientNetworking {
 
     public static void register() {
         ClientPlayNetworking.registerGlobalReceiver(BodySyncPacket.TYPE, (payload, context) -> {
-            EntityBodyData.put(payload.uuid(), payload.toConfig());
+            Services.entityBodyData().put(payload.uuid(), payload.toConfig());
         });
     }
 
@@ -32,13 +33,13 @@ public final class AnatomicaClientNetworking {
      * per-frame value change, to avoid flooding the connection while a slider is
      * being dragged.
      */
-    public static void sendLocalConfig(BodyConfig config) {
+    public static void sendLocalConfig(IBodyConfig config) {
         Minecraft client = Minecraft.getInstance();
         if (client.player == null) {
             return;
         }
         UUID uuid = client.player.getUUID();
-        EntityBodyData.put(uuid, config); // update locally immediately, don't wait for the round trip
+        Services.entityBodyData().put(uuid, config); // update locally immediately, don't wait for the round trip
         ClientPlayNetworking.send(BodySyncPacket.of(uuid, config));
     }
 }

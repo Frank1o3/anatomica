@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 public class Anatomica implements ModInitializer {
     public static final String MOD_ID = "anatomica";
-
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     @Override

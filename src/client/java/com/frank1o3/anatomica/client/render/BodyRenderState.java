@@ -37,7 +37,7 @@ public final class BodyRenderState {
             return;
         }
         UUID uuid = player.getUUID();
-        state.setData(STATE, new BodyRenderState(uuid, EntityBodyData.has(uuid)));
+        state.setData(STATE, new BodyRenderState(uuid, EntityBodyData.INSTANCE.has(uuid)));
     }
 
     public static @Nullable BodyRenderState get(EntityRenderState state) {

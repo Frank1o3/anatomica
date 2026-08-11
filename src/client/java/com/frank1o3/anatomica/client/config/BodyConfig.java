@@ -1,5 +1,6 @@
 package com.frank1o3.anatomica.client.config;
 
+import com.frank1o3.anatomica.config.IBodyConfig;
 import com.frank1o3.anatomica.uv.UVLayout;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
@@ -10,7 +11,7 @@ import net.minecraft.resources.Identifier;
  * generically by {@link AnatomicaConfig}'s registered key table so disk and
  * network code share exactly one read/write path.
  */
-public final class BodyConfig {
+public final class BodyConfig implements IBodyConfig {
     private boolean breastsEnabled = AnatomicaConfig.BREASTS_ENABLED.defaultValue();
     private float size = AnatomicaConfig.SIZE.defaultValue();
     private float petite = AnatomicaConfig.PETITE.defaultValue();

@@ -1,6 +1,6 @@
 package com.frank1o3.anatomica.client.physics;
 
-import com.frank1o3.anatomica.client.config.BodyConfig;
+import com.frank1o3.anatomica.config.IBodyConfig;
 import com.frank1o3.anatomica.physics.IPhysicsEngine;
 import com.frank1o3.anatomica.physics.LivingEntityLike;
 import com.frank1o3.franklylib.Vec3;
@@ -144,7 +144,7 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
     }
 
     @Override
-    public void tick(float deltaTime, LivingEntityLike entity, BodyConfig config) {
+    public void tick(float deltaTime, LivingEntityLike entity, IBodyConfig config) {
         if (!config.physicsEnabled()) {
             // Physics disabled: snap straight back to rest so the mesh reads as
             // static, rather than continuing to simulate an engine nothing reads.
@@ -170,7 +170,7 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
     // computeImpulse/computeArmSwingImpulse, minus vehicle/rotation specifics)
     // -------------------------------------------------------------------
 
-    private void applyDrivingForces(LivingEntityLike entity, BodyConfig config, float deltaTime) {
+    private void applyDrivingForces(LivingEntityLike entity, IBodyConfig config, float deltaTime) {
         float bounceIntensity = config.bounceStrength() * 3.0f;
 
         // The gait belongs to the attachment/base, not to every simulated node.
@@ -260,7 +260,7 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
         }
     }
 
-    private void integratePositions(float deltaTime, BodyConfig config) {
+    private void integratePositions(float deltaTime, IBodyConfig config) {
         float softness = config.softness();
         float damping = Mth.clamp(0.96f - softness * 0.20f, 0.72f, 0.96f);
 
@@ -295,7 +295,7 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
         }
     }
 
-    private void solveConstraints(BodyConfig config) {
+    private void solveConstraints(IBodyConfig config) {
         // Softer springs (higher softness) -> more visible deformation.
         float compliance = 0.05f + config.softness() * 0.30f;
 
@@ -376,7 +376,7 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
         }
     }
 
-    private void deriveVelocities(float deltaTime, BodyConfig config) {
+    private void deriveVelocities(float deltaTime, IBodyConfig config) {
         float softness = config.softness();
         float damping = Mth.clamp(0.96f - softness * 0.20f, 0.72f, 0.96f);
 

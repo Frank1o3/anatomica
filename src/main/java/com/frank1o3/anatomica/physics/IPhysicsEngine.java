@@ -1,6 +1,6 @@
 package com.frank1o3.anatomica.physics;
 
-import com.frank1o3.anatomica.client.config.BodyConfig;
+import com.frank1o3.anatomica.config.IBodyConfig;
 import com.frank1o3.franklylib.Vec3;
 
 /**
@@ -28,7 +28,7 @@ import com.frank1o3.franklylib.Vec3;
 public interface IPhysicsEngine {
 
     /** Advances the simulation by one tick. */
-    void tick(float deltaTime, LivingEntityLike entity, BodyConfig config);
+    void tick(float deltaTime, LivingEntityLike entity, IBodyConfig config);
 
     /** Resets all nodes back to their rest positions with zero velocity. */
     void reset();

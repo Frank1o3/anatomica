@@ -1,11 +1,10 @@
 package com.frank1o3.anatomica.config;
 
 import com.frank1o3.anatomica.uv.UVLayout;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 
-/** * Common contract for an Anatomica entity body configuration. */
 public interface IBodyConfig {
+
     boolean breastsEnabled();
 
     void setBreastsEnabled(boolean value);
@@ -74,11 +73,5 @@ public interface IBodyConfig {
 
     void setShowInArmor(boolean value);
 
-    CompoundTag toNbt();
-
-    /** * Creates a body configuration from serialized NBT data. */
-    static IBodyConfig fromNbt(CompoundTag tag) {
-        throw new UnsupportedOperationException(
-                "IBodyConfig.fromNbt() must be provided by the concrete configuration implementation");
-    }
+    IBodyConfig copy();
 }

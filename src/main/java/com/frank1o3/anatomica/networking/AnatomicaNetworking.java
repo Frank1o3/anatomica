@@ -1,8 +1,9 @@
 package com.frank1o3.anatomica.networking;
 
 import com.frank1o3.anatomica.Anatomica;
-import com.frank1o3.anatomica.client.config.BodyConfig;
-import com.frank1o3.anatomica.client.data.EntityBodyData;
+import com.frank1o3.anatomica.config.IBodyConfig;
+import com.frank1o3.anatomica.config.Services;
+import com.frank1o3.anatomica.data.IEntityBodyData;
 
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -17,7 +18,7 @@ import java.util.UUID;
  * up the
  * server-side relay: a client's own sync is validated (sender must own the UUID
  * they're
- * syncing), stored into {@link EntityBodyData}, then re-broadcast to every
+ * syncing), stored into {@link IEntityBodyData}, then re-broadcast to every
  * player
  * currently tracking that entity. Newly-tracking players get one immediate sync
  * of the
@@ -63,8 +64,8 @@ public final class AnatomicaNetworking {
                 return;
             }
 
-            BodyConfig config = payload.toConfig();
-            EntityBodyData.put(payload.uuid(), config);
+            IBodyConfig config = payload.toConfig();
+            Services.entityBodyData().put(payload.uuid(), config);
 
             broadcastToTrackingPlayers(sender, payload);
         });
@@ -78,8 +79,8 @@ public final class AnatomicaNetworking {
                 return;
             }
             UUID uuid = trackedPlayer.getUUID();
-            if (EntityBodyData.has(uuid)) {
-                ServerPlayNetworking.send(observer, BodySyncPacket.of(uuid, EntityBodyData.get(uuid)));
+            if (Services.entityBodyData().has(uuid)) {
+                ServerPlayNetworking.send(observer, BodySyncPacket.of(uuid, Services.entityBodyData().get(uuid)));
             }
         });
     }

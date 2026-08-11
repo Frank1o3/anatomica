@@ -1,9 +1,10 @@
 package com.frank1o3.anatomica.client.render;
 
-import com.frank1o3.anatomica.client.config.BodyConfig;
+import com.frank1o3.anatomica.config.IBodyConfig;
 import com.frank1o3.anatomica.physics.IPhysicsEngine;
 import com.frank1o3.anatomica.physics.LivingEntityLike;
 import com.frank1o3.anatomica.physics.PhysicsEngineFactory;
+import com.frank1o3.anatomica.client.config.BodyConfig;
 import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 
 import java.util.Map;
@@ -47,7 +48,7 @@ public final class ClientBodyPhysics {
     /**
      * Advances the owned engine(s) by one tick. Call once per client entity tick.
      */
-    public void tick(float deltaTime, LivingEntityLike entity, BodyConfig config) {
+    public void tick(float deltaTime, LivingEntityLike entity, IBodyConfig config) {
         ensureEngines(config);
         if (leftEngine != null) {
             leftEngine.tick(deltaTime, entity, config);
@@ -79,7 +80,7 @@ public final class ClientBodyPhysics {
      * call
      * before rendering or ticking.
      */
-    public void ensureEngines(BodyConfig config) {
+    public void ensureEngines(IBodyConfig config) {
         boolean engineChanged = leftEngine == null || !config.physicsEngineId().equals(currentEngineId);
         boolean sidesChanged = config.independentSides() != currentIndependentSides;
 

@@ -1,6 +1,9 @@
 package com.frank1o3.anatomica.client.data;
 
 import com.frank1o3.anatomica.client.config.BodyConfig;
+import com.frank1o3.anatomica.config.IBodyConfig;
+import com.frank1o3.anatomica.data.IEntityBodyData;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -8,25 +11,11 @@ import com.google.common.cache.LoadingCache;
 import java.time.Duration;
 import java.util.UUID;
 
-/**
- * UUID -> {@link BodyConfig} cache, common-side.
- *
- * <p>
- * On the server this is the authoritative store: populated as sync packets
- * arrive from
- * clients, read when relaying to newly-tracking players. On the client this
- * holds both
- * the local player's own working config and cached copies received for other
- * tracked
- * players.
- *
- * <p>
- * Entries expire after a period of disuse rather than being manually removed on
- * disconnect, so a player briefly leaving tracking range and returning doesn't
- * need a
- * re-sync, but a long-gone entity doesn't leak memory indefinitely.
- */
-public final class EntityBodyData {
+public final class EntityBodyData implements IEntityBodyData {
+
+    // 1. Create a Singleton instance so the rest of your mod can access these
+    // instance methods
+    public static final EntityBodyData INSTANCE = new EntityBodyData();
 
     private static final Duration EXPIRE_AFTER_ACCESS = Duration.ofMinutes(30);
 
@@ -37,31 +26,35 @@ public final class EntityBodyData {
     private EntityBodyData() {
     }
 
-    /**
-     * Returns the config for {@code uuid}, creating a default one if none is cached
-     * yet.
-     */
-    public static BodyConfig get(UUID uuid) {
+    @Override
+    public BodyConfig get(UUID uuid) {
         return CACHE.getUnchecked(uuid);
     }
 
-    /**
-     * Whether a config has actually been set for {@code uuid} (vs. just defaulted
-     * by {@link #get}).
-     */
-    public static boolean has(UUID uuid) {
+    @Override
+    public boolean has(UUID uuid) {
         return CACHE.asMap().containsKey(uuid);
     }
 
-    public static void put(UUID uuid, BodyConfig config) {
-        CACHE.put(uuid, config);
+    // 2. Change parameter to IBodyConfig to match the interface exactly
+    @Override
+    public void put(UUID uuid, IBodyConfig config) {
+        // 3. Safely cast to your specific client implementation before putting it in
+        // the cache
+        if (config instanceof BodyConfig) {
+            CACHE.put(uuid, (BodyConfig) config);
+        } else {
+            throw new IllegalArgumentException("Client EntityBodyData only accepts BodyConfig instances");
+        }
     }
 
-    public static void remove(UUID uuid) {
+    @Override
+    public void remove(UUID uuid) {
         CACHE.invalidate(uuid);
     }
 
-    public static void clear() {
+    @Override
+    public void clear() {
         CACHE.invalidateAll();
     }
 }

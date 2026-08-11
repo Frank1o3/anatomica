@@ -1,12 +1,12 @@
 package com.frank1o3.anatomica.client.render;
 
 import com.frank1o3.anatomica.client.mixin.accessors.LivingEntityRendererAccessor;
-import com.frank1o3.anatomica.client.config.BodyConfig;
-import com.frank1o3.anatomica.client.data.EntityBodyData;
 import com.frank1o3.anatomica.model.IDeformableModel;
 import com.frank1o3.anatomica.model.ModelFactory;
 import com.frank1o3.anatomica.physics.IPhysicsEngine;
 import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
+import com.frank1o3.anatomica.config.IBodyConfig;
+import com.frank1o3.anatomica.config.Services;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.franklylib.Vec3;
 import com.frank1o3.franklylib.client.render.AttachmentPoint;
@@ -72,7 +72,7 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
             return;
 
         UUID uuid = bodyState.uuid;
-        BodyConfig config = EntityBodyData.get(uuid);
+        IBodyConfig config = Services.entityBodyData().get(uuid);
 
         if (!config.breastsEnabled())
             return;
@@ -110,7 +110,7 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
     private static final float BASE_Y_OFFSET = 0.20f;
     private static final float BASE_Z_OFFSET = -0.125f;
 
-    private AttachmentPoint buildAttachmentPoint(BodyConfig config, int side) {
+    private AttachmentPoint buildAttachmentPoint(IBodyConfig config, int side) {
         // In Minecraft model coordinates: +X is character's Left, -X is character's
         // Right.
         // side = -1 is Left breast -> +X. side = 1 is Right breast -> -X.
