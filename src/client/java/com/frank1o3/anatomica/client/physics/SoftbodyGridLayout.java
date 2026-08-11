@@ -6,20 +6,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Defines the fixed 3x3x3 node grid every built-in soft-body attachment uses: its rest
- * positions, which nodes are pinned (the back layer, anchored to the body), and which
+ * Defines the fixed 3x3x3 node grid every built-in soft-body attachment uses:
+ * its rest
+ * positions, which nodes are pinned (the back layer, anchored to the body), and
+ * which
  * pairs of nodes are connected by a distance constraint.
  *
  * <p>
- * This is pulled out as its own utility, separate from {@link SoftbodyPhysicsEngine},
+ * This is pulled out as its own utility, separate from
+ * {@link SoftbodyPhysicsEngine},
  * so that deformable models can compute their node-influence weights
- * ({@code NodeWeighting}) against the exact same rest-position layout the engine will
- * simulate, without needing a live engine instance at model-construction time — both
+ * ({@code NodeWeighting}) against the exact same rest-position layout the
+ * engine will
+ * simulate, without needing a live engine instance at model-construction time —
+ * both
  * sides just call {@link #build} with the same dimensions.
  *
  * <p>
  * If a future physics engine wants a different topology, give it its own layout
- * utility and its own matching model set (or a model built generically enough to
+ * utility and its own matching model set (or a model built generically enough
+ * to
  * accept an arbitrary layout) — this class is deliberately specific to the one
  * built-in grid shape rather than a general "any topology" abstraction.
  */
@@ -27,14 +33,17 @@ public final class SoftbodyGridLayout {
 
     public static final int COLS = 3;
     public static final int ROWS = 3;
-    public static final int LAYERS = 3;
+    public static final int LAYERS = 5;
     public static final int NODE_COUNT = COLS * ROWS * LAYERS;
 
-    /** Half-extent of the grid along X (left/right) and Y (up/down), in model-local units. */
+    /**
+     * Half-extent of the grid along X (left/right) and Y (up/down), in model-local
+     * units.
+     */
     public static final float HALF_WIDTH = 0.14f;
     public static final float HALF_HEIGHT = 0.14f;
     /** Full depth of the grid along Z (back/front, back = fixed anchor layer). */
-    public static final float DEPTH = 0.18f;
+    public static final float DEPTH = 0.24f;
 
     public record Layout(Vec3[] restPositions, boolean[] fixed, List<int[]> constraintPairs) {
     }

@@ -13,6 +13,7 @@ import net.minecraft.resources.Identifier;
 public final class BodyConfig {
     private boolean breastsEnabled = AnatomicaConfig.BREASTS_ENABLED.defaultValue();
     private float size = AnatomicaConfig.SIZE.defaultValue();
+    private float petite = AnatomicaConfig.PETITE.defaultValue();
     private float offsetX = AnatomicaConfig.OFFSET_X.defaultValue();
     private float offsetY = AnatomicaConfig.OFFSET_Y.defaultValue();
     private float offsetZ = AnatomicaConfig.OFFSET_Z.defaultValue();
@@ -49,6 +50,14 @@ public final class BodyConfig {
 
     public void setSize(float value) {
         this.size = AnatomicaConfig.SIZE.clamp(value);
+    }
+
+    public float petite() {
+        return petite;
+    }
+
+    public void setPetite(float value) {
+        this.petite = AnatomicaConfig.PETITE.clamp(value);
     }
 
     public float offsetX() {

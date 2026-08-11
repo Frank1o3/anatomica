@@ -42,7 +42,7 @@ public final class BreastDeformableModel implements IDeformableModel {
     /**
      * How far below dead-center (in normalized [-1,1] space) the mound's peak sits.
      */
-    private static final float VERTICAL_BIAS = 0.18f;
+    private static final float VERTICAL_BIAS = 0.25f;
     /**
      * Falloff reach above the biased center. Larger = the surface stays projected
      * further before going flush with the chest (fuller); smaller = it tapers off
@@ -52,15 +52,16 @@ public final class BreastDeformableModel implements IDeformableModel {
      * replaced: multiplying by a *larger* lower value made the bottom taper off
      * *sooner*, cutting it short instead of extending it).
      */
-    private static final float UPPER_REACH = 0.9f;
+    private static final float UPPER_REACH = 0.85f;
     /**
      * Falloff reach below the biased center — larger than {@link #UPPER_REACH} so
      * the underside projects further before going flush, giving a fuller lower
      * curve.
      */
-    private static final float LOWER_REACH = 1.05f;
-    private static final float HORIZONTAL_REACH = 1.1f; // 1.0 = current width; <1 narrower/close-set, >1 wider/side-set
-    private static final float CONE_MIX = 0.15f; // 0 = fully rounded dome, 1 = fully tapered/conical profile
+    private static final float LOWER_REACH = 1.15f;
+    private static final float HORIZONTAL_REACH = 1.25f; // 1.0 = current width; <1 narrower/close-set, >1
+                                                         // wider/side-set
+    private static final float CONE_MIX = 0.25f; // 0 = fully rounded dome, 1 = fully tapered/conical profile
 
     private final ModelVertex[] vertices;
     private final int[] indices;
@@ -95,7 +96,7 @@ public final class BreastDeformableModel implements IDeformableModel {
                 float conicalFactor = Mth.clamp(1f - (float) Math.sqrt(radialSquared), 0f, 1f);
                 float depthFactor = roundedFactor * (1f - CONE_MIX) + conicalFactor * CONE_MIX * conicalFactor;
                 float gravity = Mth.clamp((ny + 1f) * 0.5f, 0f, 1f); // 0 bottom → 1 top
-                depthFactor *= Mth.lerp(1.1f, 0.85f, gravity);
+                depthFactor *= Mth.lerp(1.15f, 0.80f, gravity);
 
                 float z = -SoftbodyGridLayout.DEPTH * depthFactor;
                 Vec3 position = new Vec3(x, y, z);

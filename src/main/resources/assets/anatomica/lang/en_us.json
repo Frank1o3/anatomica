@@ -27,8 +27,8 @@
     "option.anatomica.face.north": "Front",
     "option.anatomica.face.down": "Bottom",
     "option.anatomica.face.up": "Top",
+    "model.anatomica.wedge": "Wedge Model",
     "model.anatomica.box": "Box Model",
-    "model.anatomica.organic": "Organic Mesh Model",
     "model.anatomica.rounded": "Rounded Model",
     "model.anatomica.breast": "Breast Model"
 }

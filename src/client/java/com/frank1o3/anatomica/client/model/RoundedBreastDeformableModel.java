@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  * A smooth, chest-anchored breast profile for the soft-body engine. Unlike the
- * box and organic models, its visible surface is a rounded dome that reaches
+ * box models, its visible surface is a rounded dome that reaches
  * the chest at its perimeter rather than retaining cuboid side walls.
  *
  * <p>

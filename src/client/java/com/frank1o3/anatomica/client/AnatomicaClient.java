@@ -4,8 +4,8 @@ import com.frank1o3.anatomica.Anatomica;
 import com.frank1o3.anatomica.client.gui.screen.BodyCustomizationScreen;
 import com.frank1o3.anatomica.client.model.BoxDeformableModel;
 import com.frank1o3.anatomica.client.model.BreastDeformableModel;
-import com.frank1o3.anatomica.client.model.OrganicMeshDeformableModel;
 import com.frank1o3.anatomica.client.model.RoundedBreastDeformableModel;
+import com.frank1o3.anatomica.client.model.WedgeDeformableModel;
 import com.frank1o3.anatomica.client.networking.AnatomicaClientNetworking;
 import com.frank1o3.anatomica.client.physics.SoftbodyPhysicsEngine;
 import com.frank1o3.anatomica.client.render.BodyPhysicsTicker;
@@ -37,8 +37,8 @@ public class AnatomicaClient implements ClientModInitializer {
 
     private void registerBuiltins() {
         Registry.register(AnatomicaRegistries.PHYSICS_ENGINES, Anatomica.id("softbody"), SoftbodyPhysicsEngine::new);
+        Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("wedge"), WedgeDeformableModel::new);
         Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("box"), BoxDeformableModel::new);
-        Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("organic"), OrganicMeshDeformableModel::new);
         Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("rounded"), RoundedBreastDeformableModel::new);
         Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("breast"), BreastDeformableModel::new);
     }

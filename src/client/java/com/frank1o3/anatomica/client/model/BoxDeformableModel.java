@@ -17,8 +17,7 @@ import java.util.List;
  * its {@link UVDirection} for per-face UV remapping.
  *
  * <p>
- * UV mapping follows the plain convention described in
- * {@link OrganicMeshDeformableModel}: each face's four corners map to
+ * UV mapping follows the plain convention each face's four corners map to
  * {@code (0,0), (1,0), (1,1), (0,1)} in vertex order, with one deliberate
  * exception — the {@code UP} face (the neck-adjacent top face) has its V
  * coordinate flipped via {@code flipV}, because its texture sample otherwise
@@ -60,15 +59,15 @@ public final class BoxDeformableModel implements IDeformableModel {
         addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, minZ), new Vec3(hx, -hy, minZ),
                 new Vec3(hx, hy, minZ), new Vec3(-hx, hy, minZ), null, false, false); // Back
         addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(hx, -hy, maxZ),
-                new Vec3(hx, hy, maxZ), new Vec3(-hx, hy, maxZ), UVDirection.NORTH, false, true); // Front
+                new Vec3(hx, hy, maxZ), new Vec3(-hx, hy, maxZ), UVDirection.NORTH, true, true); // was flipV=true
         addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(-hx, -hy, minZ),
                 new Vec3(-hx, hy, minZ), new Vec3(-hx, hy, maxZ), UVDirection.WEST, false, false); // Left
         addFace(vertexList, indexList, nodeRest, new Vec3(hx, -hy, minZ), new Vec3(hx, -hy, maxZ),
                 new Vec3(hx, hy, maxZ), new Vec3(hx, hy, minZ), UVDirection.EAST, false, false); // Right
         addFace(vertexList, indexList, nodeRest, new Vec3(-hx, hy, minZ), new Vec3(hx, hy, minZ),
-                new Vec3(hx, hy, maxZ), new Vec3(-hx, hy, maxZ), UVDirection.UP, false, false); // Top (-hy) — flipV
+                new Vec3(hx, hy, maxZ), new Vec3(-hx, hy, maxZ), UVDirection.DOWN, false, false); // was UVDirection.UP
         addFace(vertexList, indexList, nodeRest, new Vec3(-hx, -hy, maxZ), new Vec3(hx, -hy, maxZ),
-                new Vec3(hx, -hy, minZ), new Vec3(-hx, -hy, minZ), UVDirection.DOWN, false, false); // Bottom (+hy)
+                new Vec3(hx, -hy, minZ), new Vec3(-hx, -hy, minZ), UVDirection.UP, true, false); // was UVDirection.DOWN
 
         vertices = vertexList.toArray(new ModelVertex[0]);
         indices = indexList.stream().mapToInt(Integer::intValue).toArray();

@@ -200,6 +200,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                     pushToServer();
                 })
                 .build());
+        y += 28;
 
         addDoneButton();
     }
