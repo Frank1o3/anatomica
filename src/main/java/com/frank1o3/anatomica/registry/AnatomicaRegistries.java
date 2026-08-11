@@ -1,6 +1,11 @@
 package com.frank1o3.anatomica.registry;
 
 import com.frank1o3.anatomica.Anatomica;
+import com.frank1o3.anatomica.client.model.BoxDeformableModel;
+import com.frank1o3.anatomica.client.model.BreastDeformableModel;
+import com.frank1o3.anatomica.client.model.RoundedBreastDeformableModel;
+import com.frank1o3.anatomica.client.model.WedgeDeformableModel;
+import com.frank1o3.anatomica.client.physics.SoftbodyPhysicsEngine;
 import com.frank1o3.anatomica.model.ModelFactory;
 import com.frank1o3.anatomica.physics.PhysicsEngineFactory;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
@@ -47,5 +52,15 @@ public final class AnatomicaRegistries {
 
         /** No-op call to force this class's static initializers to run early. */
         public static void bootstrap() {
+        }
+
+        public static void registerAll() {
+                Registry.register(AnatomicaRegistries.PHYSICS_ENGINES, Anatomica.id("softbody"),
+                                SoftbodyPhysicsEngine::new);
+                Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("wedge"), WedgeDeformableModel::new);
+                Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("box"), BoxDeformableModel::new);
+                Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("rounded"),
+                                RoundedBreastDeformableModel::new);
+                Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("breast"), BreastDeformableModel::new);
         }
 }

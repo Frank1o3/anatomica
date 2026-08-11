@@ -45,6 +45,10 @@ public final class AnatomicaNetworking {
     private AnatomicaNetworking() {
     }
 
+    /** No-op call to force this class's static initializers to run early. */
+    public static void bootstrap() {
+    }
+
     public static void registerCommon() {
         PayloadTypeRegistry.serverboundPlay().register(BodySyncPacket.TYPE, BodySyncPacket.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(BodySyncPacket.TYPE, BodySyncPacket.CODEC);

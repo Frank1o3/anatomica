@@ -2,20 +2,12 @@ package com.frank1o3.anatomica.client;
 
 import com.frank1o3.anatomica.Anatomica;
 import com.frank1o3.anatomica.client.gui.screen.BodyCustomizationScreen;
-import com.frank1o3.anatomica.client.model.BoxDeformableModel;
-import com.frank1o3.anatomica.client.model.BreastDeformableModel;
-import com.frank1o3.anatomica.client.model.RoundedBreastDeformableModel;
-import com.frank1o3.anatomica.client.model.WedgeDeformableModel;
 import com.frank1o3.anatomica.client.networking.AnatomicaClientNetworking;
-import com.frank1o3.anatomica.client.physics.SoftbodyPhysicsEngine;
 import com.frank1o3.anatomica.client.render.BodyPhysicsTicker;
-import com.frank1o3.anatomica.registry.AnatomicaRegistries;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.core.Registry;
-
 import org.lwjgl.glfw.GLFW;
 
 public class AnatomicaClient implements ClientModInitializer {
@@ -29,19 +21,11 @@ public class AnatomicaClient implements ClientModInitializer {
     public void onInitializeClient() {
         Anatomica.LOGGER.info("Anatomica initializing (client)");
 
-        registerBuiltins();
         AnatomicaClientNetworking.register();
         BodyPhysicsTicker.register();
         registerKeybind();
     }
 
-    private void registerBuiltins() {
-        Registry.register(AnatomicaRegistries.PHYSICS_ENGINES, Anatomica.id("softbody"), SoftbodyPhysicsEngine::new);
-        Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("wedge"), WedgeDeformableModel::new);
-        Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("box"), BoxDeformableModel::new);
-        Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("rounded"), RoundedBreastDeformableModel::new);
-        Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("breast"), BreastDeformableModel::new);
-    }
 
     private void registerKeybind() {
         openCustomizationScreenKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(

@@ -1,6 +1,9 @@
 package com.frank1o3.anatomica;
 
 import com.frank1o3.anatomica.networking.AnatomicaNetworking;
+import com.frank1o3.anatomica.registry.AnatomicaBuiltins;
+import com.frank1o3.anatomica.registry.AnatomicaRegistries;
+
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
@@ -15,6 +18,8 @@ public class Anatomica implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Anatomica initializing (common)");
 
+        AnatomicaRegistries.bootstrap();
+        AnatomicaBuiltins.registerAll();
         AnatomicaNetworking.registerCommon();
     }
 
