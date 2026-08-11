@@ -59,7 +59,7 @@ public final class BreastDeformableModel implements IDeformableModel {
      * curve.
      */
     private static final float LOWER_REACH = 1.15f;
-    private static final float HORIZONTAL_REACH = 1.25f; // 1.0 = current width; <1 narrower/close-set, >1
+    private static final float HORIZONTAL_REACH = 1.15f; // 1.0 = current width; <1 narrower/close-set, >1
                                                          // wider/side-set
     private static final float CONE_MIX = 0.25f; // 0 = fully rounded dome, 1 = fully tapered/conical profile
 
