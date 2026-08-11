@@ -1,7 +1,7 @@
 package com.frank1o3.anatomica.networking;
 
 import com.frank1o3.anatomica.Anatomica;
-import com.frank1o3.anatomica.config.BodyConfig;
+import com.frank1o3.anatomica.client.config.BodyConfig;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;

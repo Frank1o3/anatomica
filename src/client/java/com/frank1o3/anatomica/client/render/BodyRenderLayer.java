@@ -1,12 +1,12 @@
 package com.frank1o3.anatomica.client.render;
 
 import com.frank1o3.anatomica.client.mixin.accessors.LivingEntityRendererAccessor;
-import com.frank1o3.anatomica.config.BodyConfig;
-import com.frank1o3.anatomica.data.EntityBodyData;
+import com.frank1o3.anatomica.client.config.BodyConfig;
+import com.frank1o3.anatomica.client.data.EntityBodyData;
 import com.frank1o3.anatomica.model.IDeformableModel;
 import com.frank1o3.anatomica.model.ModelFactory;
 import com.frank1o3.anatomica.physics.IPhysicsEngine;
-import com.frank1o3.anatomica.registry.AnatomicaRegistries;
+import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.franklylib.Vec3;
 import com.frank1o3.franklylib.client.render.AttachmentPoint;

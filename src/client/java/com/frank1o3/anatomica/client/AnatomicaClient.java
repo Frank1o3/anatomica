@@ -3,6 +3,7 @@ package com.frank1o3.anatomica.client;
 import com.frank1o3.anatomica.Anatomica;
 import com.frank1o3.anatomica.client.gui.screen.BodyCustomizationScreen;
 import com.frank1o3.anatomica.client.networking.AnatomicaClientNetworking;
+import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.client.render.BodyPhysicsTicker;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -21,11 +22,11 @@ public class AnatomicaClient implements ClientModInitializer {
     public void onInitializeClient() {
         Anatomica.LOGGER.info("Anatomica initializing (client)");
 
+        AnatomicaRegistries.registerClient();
         AnatomicaClientNetworking.register();
         BodyPhysicsTicker.register();
         registerKeybind();
     }
-
 
     private void registerKeybind() {
         openCustomizationScreenKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(

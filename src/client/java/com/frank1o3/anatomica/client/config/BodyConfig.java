@@ -1,4 +1,4 @@
-package com.frank1o3.anatomica.config;
+package com.frank1o3.anatomica.client.config;
 
 import com.frank1o3.anatomica.uv.UVLayout;
 import net.minecraft.nbt.CompoundTag;

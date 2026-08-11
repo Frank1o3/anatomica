@@ -1,4 +1,4 @@
-package com.frank1o3.anatomica.registry;
+package com.frank1o3.anatomica.client.registry;
 
 import com.frank1o3.anatomica.Anatomica;
 import com.frank1o3.anatomica.client.model.BreastDeformableModel;
@@ -7,6 +7,7 @@ import com.frank1o3.anatomica.client.model.WedgeDeformableModel;
 import com.frank1o3.anatomica.client.physics.SoftbodyPhysicsEngine;
 import com.frank1o3.anatomica.model.ModelFactory;
 import com.frank1o3.anatomica.physics.PhysicsEngineFactory;
+
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.minecraft.core.DefaultedRegistry;
 import net.minecraft.core.Registry;
@@ -35,27 +36,24 @@ public final class AnatomicaRegistries {
         private static final ResourceKey<Registry<PhysicsEngineFactory>> PHYSICS_ENGINES_KEY = ResourceKey
                         .createRegistryKey(Anatomica.id("physics_engines"));
 
-        private static final ResourceKey<Registry<ModelFactory>> MODELS_KEY = ResourceKey
-                        .createRegistryKey(Anatomica.id("models"));
-
         public static final DefaultedRegistry<PhysicsEngineFactory> PHYSICS_ENGINES = FabricRegistryBuilder
                         .createDefaulted(PHYSICS_ENGINES_KEY, Anatomica.id("softbody"))
                         .buildAndRegister();
 
+        private static final ResourceKey<Registry<ModelFactory>> MODELS_KEY = ResourceKey
+                        .createRegistryKey(Anatomica.id("models"));
+
         public static final DefaultedRegistry<ModelFactory> MODELS = FabricRegistryBuilder
-                        .createDefaulted(MODELS_KEY, Anatomica.id("box"))
+                        .createDefaulted(MODELS_KEY, Anatomica.id("breast"))
                         .buildAndRegister();
 
         private AnatomicaRegistries() {
         }
 
-        /** No-op call to force this class's static initializers to run early. */
-        public static void bootstrap() {
-        }
-
-        public static void registerAll() {
+        public static void registerClient() {
                 Registry.register(AnatomicaRegistries.PHYSICS_ENGINES, Anatomica.id("softbody"),
                                 SoftbodyPhysicsEngine::new);
+
                 Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("wedge"), WedgeDeformableModel::new);
                 Registry.register(AnatomicaRegistries.MODELS, Anatomica.id("rounded"),
                                 RoundedBreastDeformableModel::new);

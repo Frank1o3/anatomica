@@ -1,6 +1,6 @@
-package com.frank1o3.anatomica.config.keys;
+package com.frank1o3.anatomica.client.config.keys;
 
-import com.frank1o3.anatomica.config.BodyConfigKey;
+import com.frank1o3.anatomica.client.config.BodyConfigKey;
 import com.frank1o3.anatomica.uv.UVDirection;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.anatomica.uv.UVQuad;

@@ -1,6 +1,6 @@
 package com.frank1o3.anatomica.physics;
 
-import com.frank1o3.anatomica.config.BodyConfig;
+import com.frank1o3.anatomica.client.config.BodyConfig;
 import com.frank1o3.franklylib.Vec3;
 
 /**

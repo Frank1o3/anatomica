@@ -63,14 +63,15 @@ public final class WedgeDeformableModel implements IDeformableModel {
                 uv(new Vec3(-hx, hy, maxZ), 0f, 1f));
 
         // Slanted front face — the ramp. Runs from the back-top edge (y=-hy,
-        // z=minZ, physically the neck-adjacent edge) down to the bottom-front
-        // edge (y=+hy, z=maxZ). Same v-convention as the corrected NORTH face
-        // on BoxDeformableModel: physically-up -> v=0, physically-down -> v=1.
+        // z=minZ) down to the bottom-front edge (y=+hy, z=maxZ).
+        //
+        // The winding is reversed compared to the original version so the NORTH
+        // face is oriented correctly instead of appearing upside down.
         addFace(vertexList, indexList, nodeRest, UVDirection.NORTH,
                 uv(new Vec3(-hx, -hy, minZ), 0f, 0f),
-                uv(new Vec3(hx, -hy, minZ), 1f, 0f),
+                uv(new Vec3(-hx, hy, maxZ), 0f, 1f),
                 uv(new Vec3(hx, hy, maxZ), 1f, 1f),
-                uv(new Vec3(-hx, hy, maxZ), 0f, 1f));
+                uv(new Vec3(hx, -hy, minZ), 1f, 0f));
 
         // Left triangular end cap. Only 3 of the box's 4 WEST corners exist —
         // there's no "front-top" vertex on a wedge — so this reuses WEST's

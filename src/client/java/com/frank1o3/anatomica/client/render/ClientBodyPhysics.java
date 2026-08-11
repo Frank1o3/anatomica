@@ -1,10 +1,10 @@
 package com.frank1o3.anatomica.client.render;
 
-import com.frank1o3.anatomica.config.BodyConfig;
+import com.frank1o3.anatomica.client.config.BodyConfig;
 import com.frank1o3.anatomica.physics.IPhysicsEngine;
 import com.frank1o3.anatomica.physics.LivingEntityLike;
 import com.frank1o3.anatomica.physics.PhysicsEngineFactory;
-import com.frank1o3.anatomica.registry.AnatomicaRegistries;
+import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 
 import java.util.Map;
 import java.util.UUID;
@@ -57,7 +57,10 @@ public final class ClientBodyPhysics {
         }
     }
 
-    /** The left-side engine. Call {@link #ensureEngines(BodyConfig)} first if needed. */
+    /**
+     * The left-side engine. Call {@link #ensureEngines(BodyConfig)} first if
+     * needed.
+     */
     public IPhysicsEngine leftEngine() {
         return leftEngine;
     }
@@ -72,7 +75,8 @@ public final class ClientBodyPhysics {
     }
 
     /**
-     * Ensures engine instances exist and match the given {@code config}. Safe to call
+     * Ensures engine instances exist and match the given {@code config}. Safe to
+     * call
      * before rendering or ticking.
      */
     public void ensureEngines(BodyConfig config) {

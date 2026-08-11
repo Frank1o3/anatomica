@@ -2,11 +2,11 @@ package com.frank1o3.anatomica.client.gui.screen;
 
 import com.frank1o3.anatomica.client.gui.FaceUVPicker;
 import com.frank1o3.anatomica.client.networking.AnatomicaClientNetworking;
-import com.frank1o3.anatomica.config.AnatomicaConfig;
-import com.frank1o3.anatomica.config.BodyConfig;
-import com.frank1o3.anatomica.data.EntityBodyData;
+import com.frank1o3.anatomica.client.config.AnatomicaConfig;
+import com.frank1o3.anatomica.client.config.BodyConfig;
+import com.frank1o3.anatomica.client.data.EntityBodyData;
 import com.frank1o3.anatomica.model.ModelFactory;
-import com.frank1o3.anatomica.registry.AnatomicaRegistries;
+import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.uv.UVDirection;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.anatomica.uv.UVQuad;

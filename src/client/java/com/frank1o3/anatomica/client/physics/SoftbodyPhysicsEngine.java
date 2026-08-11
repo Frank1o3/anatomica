@@ -1,6 +1,6 @@
 package com.frank1o3.anatomica.client.physics;
 
-import com.frank1o3.anatomica.config.BodyConfig;
+import com.frank1o3.anatomica.client.config.BodyConfig;
 import com.frank1o3.anatomica.physics.IPhysicsEngine;
 import com.frank1o3.anatomica.physics.LivingEntityLike;
 import com.frank1o3.franklylib.Vec3;
@@ -81,7 +81,9 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
     private final float[] velX, velY, velZ;
     private final float[] interpX, interpY, interpZ;
 
-    /** The last entity position seen by this engine, for fixed-tick displacement. */
+    /**
+     * The last entity position seen by this engine, for fixed-tick displacement.
+     */
     private Vec3 previousEntityPosition;
     /** Vertical gait offset applied to the chest-anchored node layer. */
     private float walkBaseOffsetY;
@@ -96,7 +98,7 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
         this.restLengths = new float[constraintPairs.length];
         this.nodeMass = new float[n];
 
-        float maxZ = SoftbodyGridLayout.DEPTH;
+        float maxZ = SoftbodyGridLayout.PHYSICS_DEPTH;
         for (int i = 0; i < n; i++) {
             Vec3 rest = layout.restPositions()[i];
             float zFactor = maxZ > 0f ? rest.z() / maxZ : 0f; // 0 (back) .. 1 (front)
@@ -189,17 +191,14 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
             previousEntityPosition = currentPosition;
             return;
         }
-        Vec3 motion = currentPosition.subtract(previousEntityPosition);
-        previousEntityPosition = currentPosition;
 
         float impX = 0f;
         float impY = 0f;
         float impZ = 0f;
 
-        // The breast lags behind the body's vertical displacement: on ascent it
-        // moves downward relative to the chest, and while falling it lifts.
-        // Position displacement captures both behaviours directly at the fixed
-        // client tick rate.
+        Vec3 motion = currentPosition.subtract(previousEntityPosition);
+        previousEntityPosition = currentPosition;
+
         impY += -motion.y() * bounceIntensity;
         impZ += -motion.z() * bounceIntensity * 2.0f;
 
@@ -253,7 +252,7 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
                 continue;
             }
             // Front nodes (higher z) respond more to bounce; back-adjacent nodes less.
-            float zFactor = layout.restPositions()[i].z() / SoftbodyGridLayout.DEPTH;
+            float zFactor = layout.restPositions()[i].z() / SoftbodyGridLayout.PHYSICS_DEPTH;
 
             velX[i] += impX * zFactor;
             velY[i] += impY * zFactor + gravity;
@@ -279,7 +278,10 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
         }
     }
 
-    /** Moves only the fixed back layer; dynamic nodes are pulled along by constraints. */
+    /**
+     * Moves only the fixed back layer; dynamic nodes are pulled along by
+     * constraints.
+     */
     private void updateAnchorPositions() {
         for (int i = 0; i < posY.length; i++) {
             if (!layout.fixed()[i]) {
@@ -365,11 +367,11 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
             posY[i] = Mth.clamp(posY[i], rest.y() - upBound, rest.y() + downBound);
 
             if (rest.z() < 0f) {
-                float minZ = rest.z() * MAX_FRONT_EXTENSION_RATIO;
-                float maxZ = rest.z() * MIN_DEPTH_RATIO;
+                float minZ = rest.z() * MAX_FRONT_EXTENSION_RATIO; // 1.75x rest depth
+                float maxZ = rest.z() * MIN_DEPTH_RATIO; // 0.81x rest depth
                 posZ[i] = Mth.clamp(posZ[i], minZ, maxZ);
             } else {
-                posZ[i] = Mth.clamp(posZ[i], -SoftbodyGridLayout.DEPTH * 0.25f, 0f);
+                posZ[i] = Mth.clamp(posZ[i], -SoftbodyGridLayout.PHYSICS_DEPTH * 0.25f, 0f);
             }
         }
     }

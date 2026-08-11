@@ -1,6 +1,6 @@
 package com.frank1o3.anatomica.client.render;
 
-import com.frank1o3.anatomica.data.EntityBodyData;
+import com.frank1o3.anatomica.client.data.EntityBodyData;
 import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.LivingEntity;

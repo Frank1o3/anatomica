@@ -1,11 +1,11 @@
-package com.frank1o3.anatomica.config;
+package com.frank1o3.anatomica.client.config;
 
 import com.frank1o3.anatomica.Anatomica;
-import com.frank1o3.anatomica.config.keys.BooleanConfigKey;
-import com.frank1o3.anatomica.config.keys.FloatConfigKey;
-import com.frank1o3.anatomica.config.keys.IdentifierConfigKey;
-import com.frank1o3.anatomica.config.keys.UVLayoutConfigKey;
-import com.frank1o3.anatomica.registry.AnatomicaRegistries;
+import com.frank1o3.anatomica.client.config.keys.BooleanConfigKey;
+import com.frank1o3.anatomica.client.config.keys.FloatConfigKey;
+import com.frank1o3.anatomica.client.config.keys.IdentifierConfigKey;
+import com.frank1o3.anatomica.client.config.keys.UVLayoutConfigKey;
+import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.uv.UVLayout;
 import net.minecraft.nbt.CompoundTag;
 
@@ -52,7 +52,7 @@ public final class AnatomicaConfig {
                         Anatomica.id("softbody"),
                         () -> AnatomicaRegistries.PHYSICS_ENGINES);
 
-        public static final IdentifierConfigKey MODEL_ID = new IdentifierConfigKey("model", Anatomica.id("box"),
+        public static final IdentifierConfigKey MODEL_ID = new IdentifierConfigKey("model", Anatomica.id("breast"),
                         () -> AnatomicaRegistries.MODELS);
 
         public static final BooleanConfigKey SHOW_IN_ARMOR = new BooleanConfigKey("show_in_armor", false);

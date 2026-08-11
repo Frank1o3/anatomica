@@ -1,8 +1,8 @@
 package com.frank1o3.anatomica.networking;
 
 import com.frank1o3.anatomica.Anatomica;
-import com.frank1o3.anatomica.config.BodyConfig;
-import com.frank1o3.anatomica.data.EntityBodyData;
+import com.frank1o3.anatomica.client.config.BodyConfig;
+import com.frank1o3.anatomica.client.data.EntityBodyData;
 
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;

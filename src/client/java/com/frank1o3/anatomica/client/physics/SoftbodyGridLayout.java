@@ -43,7 +43,9 @@ public final class SoftbodyGridLayout {
     public static final float HALF_WIDTH = 0.14f;
     public static final float HALF_HEIGHT = 0.14f;
     /** Full depth of the grid along Z (back/front, back = fixed anchor layer). */
-    public static final float DEPTH = 0.24f;
+    public static final float DEPTH = 0.18f;
+    public static final float PHYSICS_DEPTH = 0.24f;
+    
 
     public record Layout(Vec3[] restPositions, boolean[] fixed, List<int[]> constraintPairs) {
     }

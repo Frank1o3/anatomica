@@ -1,6 +1,6 @@
-package com.frank1o3.anatomica.data;
+package com.frank1o3.anatomica.client.data;
 
-import com.frank1o3.anatomica.config.BodyConfig;
+import com.frank1o3.anatomica.client.config.BodyConfig;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;

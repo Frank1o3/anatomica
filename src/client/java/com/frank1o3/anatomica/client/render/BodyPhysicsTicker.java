@@ -1,7 +1,7 @@
 package com.frank1o3.anatomica.client.render;
 
-import com.frank1o3.anatomica.config.BodyConfig;
-import com.frank1o3.anatomica.data.EntityBodyData;
+import com.frank1o3.anatomica.client.config.BodyConfig;
+import com.frank1o3.anatomica.client.data.EntityBodyData;
 import com.frank1o3.anatomica.physics.LivingEntityLike;
 import com.frank1o3.anatomica.client.physics.ClientLivingEntityAdapter;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
