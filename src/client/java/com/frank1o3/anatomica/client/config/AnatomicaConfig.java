@@ -7,6 +7,7 @@ import com.frank1o3.anatomica.client.config.keys.IdentifierConfigKey;
 import com.frank1o3.anatomica.client.config.keys.UVLayoutConfigKey;
 import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.uv.UVLayout;
+import com.frank1o3.franklylib.config.ConfigValueHandlers;
 import net.minecraft.nbt.CompoundTag;
 
 import java.util.List;
@@ -75,6 +76,10 @@ public final class AnatomicaConfig {
                         entry(SHOW_IN_ARMOR, BodyConfig::showInArmor, BodyConfig::setShowInArmor),
                         entry(LEFT_UV_LAYOUT, BodyConfig::leftUvLayout, BodyConfig::setLeftUvLayout),
                         entry(RIGHT_UV_LAYOUT, BodyConfig::rightUvLayout, BodyConfig::setRightUvLayout));
+
+        static {
+                ConfigValueHandlers.register(UVLayout.class, new UVLayoutConfigValueHandler());
+        }
 
         private AnatomicaConfig() {
         }

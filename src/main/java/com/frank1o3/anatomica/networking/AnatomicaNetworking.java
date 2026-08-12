@@ -1,6 +1,5 @@
 package com.frank1o3.anatomica.networking;
 
-import com.frank1o3.anatomica.Anatomica;
 import com.frank1o3.anatomica.data.IEntityBodyData;
 import com.frank1o3.anatomica.data.ServerEntityBodyData;
 
@@ -52,22 +51,13 @@ public final class AnatomicaNetworking {
     }
 
     public static void registerCommon() {
-        PayloadTypeRegistry.serverboundPlay().register(BodySyncPacket.TYPE, BodySyncPacket.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(BodySyncUploadPacket.TYPE, BodySyncUploadPacket.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(BodySyncPacket.TYPE, BodySyncPacket.CODEC);
 
-        ServerPlayNetworking.registerGlobalReceiver(BodySyncPacket.TYPE, (payload, context) -> {
+        ServerPlayNetworking.registerGlobalReceiver(BodySyncUploadPacket.TYPE, (payload, context) -> {
             ServerPlayer sender = context.player();
-
-            if (!payload.uuid().equals(sender.getUUID())) {
-                Anatomica.LOGGER.warn(
-                        "Player {} sent a body-sync packet for a UUID that isn't their own ({}); ignoring.",
-                        sender.getGameProfile().name(), payload.uuid());
-                return;
-            }
-
-            BODY_DATA.put(payload.uuid(), payload.data());
-
-            broadcastToTrackingPlayers(sender, payload);
+            BODY_DATA.put(sender.getUUID(), payload.data());
+            broadcastToTrackingPlayers(sender, new BodySyncPacket(sender.getUUID(), payload.data()));
         });
 
         // Fires when a player enters tracking range of another entity. If we already
@@ -80,7 +70,7 @@ public final class AnatomicaNetworking {
             }
             UUID uuid = trackedPlayer.getUUID();
             if (BODY_DATA.has(uuid)) {
-                ServerPlayNetworking.send(observer, BodySyncPacket.of(uuid, BODY_DATA.get(uuid)));
+                ServerPlayNetworking.send(observer, new BodySyncPacket(uuid, BODY_DATA.get(uuid)));
             }
         });
     }

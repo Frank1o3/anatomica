@@ -3,6 +3,7 @@ package com.frank1o3.anatomica.client;
 import com.frank1o3.anatomica.Anatomica;
 import com.frank1o3.anatomica.client.gui.screen.BodyCustomizationScreen;
 import com.frank1o3.anatomica.client.networking.AnatomicaClientNetworking;
+import com.frank1o3.anatomica.client.config.ClientBodyConfigStorage;
 import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.client.render.BodyPhysicsTicker;
 import net.fabricmc.api.ClientModInitializer;
@@ -34,6 +35,7 @@ public class AnatomicaClient implements ClientModInitializer {
         ClientPlayConnectionEvents.JOIN.register((listener, sender, client) ->
                 AnatomicaClientNetworking.loadAndSyncLocalConfig());
         ClientPlayConnectionEvents.DISCONNECT.register((listener, client) -> {
+            ClientBodyConfigStorage.closeAll();
             com.frank1o3.anatomica.client.data.EntityBodyData.INSTANCE.clear();
             com.frank1o3.anatomica.client.render.ClientBodyPhysics.clearAll();
         });

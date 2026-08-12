@@ -2,7 +2,7 @@ package com.frank1o3.anatomica.data;
 
 import java.util.UUID;
 
-import net.minecraft.nbt.CompoundTag;
+import com.frank1o3.anatomica.networking.BodySyncData;
 
 /**
  * Common contract for server storage of per-entity Anatomica body data.
@@ -14,18 +14,18 @@ import net.minecraft.nbt.CompoundTag;
  */
 public interface IEntityBodyData {
     /**
-     * Returns a copy of the serialized configuration for an entity, or {@code null}
+     * Returns the compact configuration for an entity, or {@code null}
      * when that entity has not sent one yet.
      */
-    CompoundTag get(UUID uuid);
+    BodySyncData get(UUID uuid);
 
     /**
      * * Returns whether an explicitly stored configuration exists for the entity.
      */
     boolean has(UUID uuid);
 
-    /** Stores a serialized configuration for an entity. */
-    void put(UUID uuid, CompoundTag config);
+    /** Stores a compact configuration for an entity. */
+    void put(UUID uuid, BodySyncData config);
 
     /** * Removes the configuration for an entity. */
     void remove(UUID uuid);
