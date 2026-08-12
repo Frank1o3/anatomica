@@ -1,6 +1,7 @@
 package com.frank1o3.anatomica.client.mixin;
 
 import com.frank1o3.anatomica.client.render.BodyRenderLayer;
+import com.frank1o3.anatomica.client.render.BodyArmorRenderLayer;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -41,5 +42,6 @@ abstract class AvatarRendererMixin
     @Inject(method = "<init>", at = @At("TAIL"))
     private void anatomica$addBodyLayer(EntityRendererProvider.Context ctx, boolean slim, CallbackInfo ci) {
         this.addLayer(new BodyRenderLayer<>(this));
+        this.addLayer(new BodyArmorRenderLayer<>(this, ctx.getEquipmentAssets()));
     }
 }

@@ -70,6 +70,8 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
     private final SoftbodyGridLayout.Layout layout;
     private final int[][] constraintPairs;
     private final float[] restLengths;
+    private final int[][] volumeCells;
+    private final float restVolume;
     /**
      * Simulated per-node mass (front nodes slightly heavier -> more visible
      * inertia). Fixed nodes: MAX_VALUE.
@@ -97,6 +99,7 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
         this.constraintPairs = layout.constraintPairs().toArray(new int[0][]);
         this.restLengths = new float[constraintPairs.length];
         this.nodeMass = new float[n];
+        this.volumeCells = buildVolumeCells();
 
         float maxZ = SoftbodyGridLayout.PHYSICS_DEPTH;
         for (int i = 0; i < n; i++) {
@@ -111,6 +114,7 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
             Vec3 delta = a.subtract(b);
             restLengths[i] = (float) Math.sqrt(delta.dot(delta));
         }
+        this.restVolume = totalVolume(layout.restPositions());
 
         posX = new float[n];
         posY = new float[n];
@@ -342,7 +346,96 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
                     posZ[b] -= cz * wb;
                 }
             }
+            applyVolumeConstraint(config.petite());
         }
+    }
+
+    /**
+     * Restores the grid's enclosed volume after the distance constraints run.
+     * Scaling only the free layers along their chest-to-front axis retains sag
+     * and lateral motion while pressure pushes an inward-collapsing mesh back
+     * out from its anchored back layer.
+     */
+    private void applyVolumeConstraint(float strength) {
+        if (strength <= 0f || restVolume <= 0f) {
+            return;
+        }
+        float currentVolume = totalVolume(posX, posY, posZ);
+        if (currentVolume <= 1.0e-7f) {
+            return;
+        }
+
+        float targetDepthScale = Mth.clamp(restVolume / currentVolume, 0.85f, 1.20f);
+        float correction = Mth.lerp(strength * 0.35f, 1.0f, targetDepthScale);
+        for (int i = 0; i < posZ.length; i++) {
+            if (!layout.fixed()[i]) {
+                posZ[i] *= correction;
+            }
+        }
+    }
+
+    private int[][] buildVolumeCells() {
+        int count = (SoftbodyGridLayout.COLS - 1) * (SoftbodyGridLayout.ROWS - 1)
+                * (SoftbodyGridLayout.LAYERS - 1);
+        int[][] cells = new int[count][8];
+        int cell = 0;
+        for (int z = 0; z < SoftbodyGridLayout.LAYERS - 1; z++) {
+            for (int y = 0; y < SoftbodyGridLayout.ROWS - 1; y++) {
+                for (int x = 0; x < SoftbodyGridLayout.COLS - 1; x++) {
+                    cells[cell++] = new int[] {
+                            SoftbodyGridLayout.index(x, y, z),
+                            SoftbodyGridLayout.index(x + 1, y, z),
+                            SoftbodyGridLayout.index(x + 1, y + 1, z),
+                            SoftbodyGridLayout.index(x, y + 1, z),
+                            SoftbodyGridLayout.index(x, y, z + 1),
+                            SoftbodyGridLayout.index(x + 1, y, z + 1),
+                            SoftbodyGridLayout.index(x + 1, y + 1, z + 1),
+                            SoftbodyGridLayout.index(x, y + 1, z + 1)
+                    };
+                }
+            }
+        }
+        return cells;
+    }
+
+    private float totalVolume(Vec3[] positions) {
+        float[] x = new float[positions.length];
+        float[] y = new float[positions.length];
+        float[] z = new float[positions.length];
+        for (int i = 0; i < positions.length; i++) {
+            x[i] = positions[i].x();
+            y[i] = positions[i].y();
+            z[i] = positions[i].z();
+        }
+        return totalVolume(x, y, z);
+    }
+
+    private float totalVolume(float[] x, float[] y, float[] z) {
+        float volume = 0f;
+        for (int[] cell : volumeCells) {
+            volume += tetrahedronVolume(cell[0], cell[1], cell[3], cell[4], x, y, z);
+            volume += tetrahedronVolume(cell[1], cell[2], cell[3], cell[6], x, y, z);
+            volume += tetrahedronVolume(cell[1], cell[3], cell[4], cell[6], x, y, z);
+            volume += tetrahedronVolume(cell[1], cell[4], cell[5], cell[6], x, y, z);
+            volume += tetrahedronVolume(cell[3], cell[4], cell[6], cell[7], x, y, z);
+        }
+        return volume;
+    }
+
+    private static float tetrahedronVolume(int a, int b, int c, int d, float[] x, float[] y, float[] z) {
+        float abx = x[b] - x[a];
+        float aby = y[b] - y[a];
+        float abz = z[b] - z[a];
+        float acx = x[c] - x[a];
+        float acy = y[c] - y[a];
+        float acz = z[c] - z[a];
+        float adx = x[d] - x[a];
+        float ady = y[d] - y[a];
+        float adz = z[d] - z[a];
+        float determinant = abx * (acy * adz - acz * ady)
+                - aby * (acx * adz - acz * adx)
+                + abz * (acx * ady - acy * adx);
+        return Math.abs(determinant) / 6f;
     }
 
     /**

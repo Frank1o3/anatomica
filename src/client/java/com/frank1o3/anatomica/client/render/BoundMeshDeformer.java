@@ -17,7 +17,6 @@ public final class BoundMeshDeformer implements MeshDeformer {
 
     private final IDeformableModel model;
     private final IPhysicsEngine engine;
-
     public BoundMeshDeformer(IDeformableModel model, IPhysicsEngine engine) {
         this.model = model;
         this.engine = engine;
@@ -25,10 +24,9 @@ public final class BoundMeshDeformer implements MeshDeformer {
 
     @Override
     public Vec3[] deform(Mesh baseMesh, float partialTick) {
-        if (engine == null) {
-            return model.deform(null);
+        if (engine != null) {
+            engine.interpolate(partialTick);
         }
-        engine.interpolate(partialTick);
         return model.deform(engine);
     }
 }

@@ -1,6 +1,7 @@
 package com.frank1o3.anatomica.client.networking;
 
 import com.frank1o3.anatomica.client.config.BodyConfig;
+import com.frank1o3.anatomica.client.config.ClientBodyConfigStorage;
 import com.frank1o3.anatomica.client.data.EntityBodyData;
 import com.frank1o3.anatomica.config.IBodyConfig;
 import com.frank1o3.anatomica.networking.BodySyncPacket;
@@ -41,7 +42,18 @@ public final class AnatomicaClientNetworking {
         UUID uuid = client.player.getUUID();
         BodyConfig bodyConfig = requireClientConfig(config);
         EntityBodyData.INSTANCE.put(uuid, bodyConfig); // update locally immediately, don't wait for the round trip
+        ClientBodyConfigStorage.save(uuid, bodyConfig);
         ClientPlayNetworking.send(BodySyncPacket.of(uuid, bodyConfig.toNbt()));
+    }
+
+    /** Loads this Minecraft profile's local config and shares it with the joined world. */
+    public static void loadAndSyncLocalConfig() {
+        Minecraft client = Minecraft.getInstance();
+        if (client.player == null) {
+            return;
+        }
+        UUID uuid = client.player.getUUID();
+        ClientBodyConfigStorage.load(uuid).ifPresent(config -> sendLocalConfig(config));
     }
 
     private static BodyConfig requireClientConfig(IBodyConfig config) {

@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 public final class BodyCustomizationScreen extends BaseFranklyScreen {
 
     private static final int PANEL_WIDTH = 360;
-    private static final int PANEL_HEIGHT = 250;
+    private static final int PANEL_HEIGHT = 276;
     private static final int PADDING = 12;
     private static final int ROW_HEIGHT = 22;
     private static final int SLIDER_WIDTH = PANEL_WIDTH - (PADDING * 2);
@@ -116,6 +116,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
         y += ROW_HEIGHT;
 
         addRenderableWidget(sizeSlider(x, y, sliderWidth));
+        y += ROW_HEIGHT;
+        addRenderableWidget(volumeSlider(x, y, sliderWidth));
         y += ROW_HEIGHT;
         addRenderableWidget(offsetSlider("offset_x", x, y, sliderWidth, working.offsetX(), working::setOffsetX));
         y += ROW_HEIGHT;
@@ -339,6 +341,19 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .label(Component.translatable("option.anatomica.size"))
                 .formatterString(v -> String.format("%.0f%%", v * 100.0))
                 .onValueChanged(v -> working.setSize((float) (double) v))
+                .onValueCommitted(v -> pushToServer())
+                .build();
+    }
+
+    private FranklySlider volumeSlider(int x, int y, int width) {
+        return FranklySlider.builder()
+                .bounds(x, y, width, 20)
+                .range(AnatomicaConfig.PETITE.min(), AnatomicaConfig.PETITE.max())
+                .step(0.01)
+                .initialValue(working.petite())
+                .label(Component.translatable("option.anatomica.volume"))
+                .formatterString(v -> String.format("%.0f%%", v * 100.0))
+                .onValueChanged(v -> working.setPetite((float) (double) v))
                 .onValueCommitted(v -> pushToServer())
                 .build();
     }

@@ -8,6 +8,7 @@
     "tab.anatomica.model": "Model",
     "tab.anatomica.uv": "UV / Texture",
     "option.anatomica.size": "Size",
+    "option.anatomica.volume": "Volume",
     "option.anatomica.offset_x": "Offset X",
     "option.anatomica.offset_y": "Offset Y",
     "option.anatomica.offset_z": "Offset Z",

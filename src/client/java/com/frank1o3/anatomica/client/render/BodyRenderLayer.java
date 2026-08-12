@@ -77,6 +77,12 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
         if (!config.breastsEnabled())
             return;
 
+        // The matching armor layer renders the deformed surface with the
+        // chestplate texture. Keeping the skin pass out of this case prevents it
+        // from being drawn over vanilla armor.
+        if (!renderState.chestEquipment.isEmpty())
+            return;
+
         IDeformableModel model = resolveModel(config.modelId());
         if (model == null)
             return;

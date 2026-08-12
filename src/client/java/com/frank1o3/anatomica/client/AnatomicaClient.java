@@ -8,6 +8,7 @@ import com.frank1o3.anatomica.client.render.BodyPhysicsTicker;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.KeyMapping;
 import org.lwjgl.glfw.GLFW;
 
@@ -24,8 +25,18 @@ public class AnatomicaClient implements ClientModInitializer {
 
         AnatomicaRegistries.registerClient();
         AnatomicaClientNetworking.register();
+        registerConnectionEvents();
         BodyPhysicsTicker.register();
         registerKeybind();
+    }
+
+    private void registerConnectionEvents() {
+        ClientPlayConnectionEvents.JOIN.register((listener, sender, client) ->
+                AnatomicaClientNetworking.loadAndSyncLocalConfig());
+        ClientPlayConnectionEvents.DISCONNECT.register((listener, client) -> {
+            com.frank1o3.anatomica.client.data.EntityBodyData.INSTANCE.clear();
+            com.frank1o3.anatomica.client.render.ClientBodyPhysics.clearAll();
+        });
     }
 
     private void registerKeybind() {
