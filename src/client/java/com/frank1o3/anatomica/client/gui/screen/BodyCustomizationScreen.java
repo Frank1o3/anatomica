@@ -12,6 +12,7 @@ import com.frank1o3.anatomica.uv.UVDirection;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.anatomica.uv.UVQuad;
 import com.frank1o3.franklylib.client.gui.*;
+import com.frank1o3.franklylib.client.gui.style.FranklyUiStyle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -30,6 +31,11 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
     private static final int PADDING = 12;
     private static final int ROW_HEIGHT = 22;
     private static final int SLIDER_WIDTH = PANEL_WIDTH - (PADDING * 2);
+    private static final Identifier PANEL_STYLE = Identifier.fromNamespaceAndPath("anatomica", "body_studio");
+    private static final Identifier CONTROL_STYLE = Identifier.fromNamespaceAndPath("anatomica", "control");
+    private static final Identifier ACCENT_STYLE = Identifier.fromNamespaceAndPath("anatomica", "accent");
+    private static final Identifier PREVIEW_STYLE = Identifier.fromNamespaceAndPath("anatomica", "preview");
+    private static final Identifier HOVER_ANIMATION = Identifier.fromNamespaceAndPath("anatomica", "soft_lift");
 
     private enum Tab {
         GENERAL, PHYSICS, MODEL, UV
@@ -56,6 +62,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
 
     public BodyCustomizationScreen(@Nullable Screen parent) {
         super(Component.translatable("screen.anatomica.body_customization"), parent, PANEL_WIDTH, PANEL_HEIGHT);
+        setUiStyle(PANEL_STYLE);
     }
 
     @Override
@@ -78,6 +85,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .labelMapper(tab -> Component.translatable("tab.anatomica." + tab.name().toLowerCase()))
                 .current(currentTab)
                 .onSelect(this::switchTab)
+                .style(CONTROL_STYLE)
                 .build());
 
         int y = tabY + 22;
@@ -102,6 +110,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .bounds(x + sliderWidth + PADDING, y, previewWidth, 140)
                 .previewSize(36)
                 .entity(() -> Minecraft.getInstance().player)
+                .style(PREVIEW_STYLE)
                 .build());
 
         addRenderableWidget(FranklyCheckbox.builder()
@@ -112,6 +121,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                     working.setBreastsEnabled(value);
                     pushToServer();
                 })
+                .style(CONTROL_STYLE)
                 .build());
         y += ROW_HEIGHT;
 
@@ -138,6 +148,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                     working.setShowInArmor(value);
                     pushToServer();
                 })
+                .style(CONTROL_STYLE)
                 .build());
 
         addDoneButton();
@@ -152,6 +163,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                     working.setPhysicsEnabled(value);
                     pushToServer();
                 })
+                .style(CONTROL_STYLE)
                 .build());
         y += 20;
 
@@ -164,6 +176,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                     pushToServer();
                     rebuildWidgets();
                 })
+                .style(CONTROL_STYLE)
                 .build());
         y += 24;
 
@@ -187,6 +200,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                     working.setPhysicsEngineId(id);
                     pushToServer();
                 })
+                .style(CONTROL_STYLE)
+                .animation(HOVER_ANIMATION)
                 .build());
         y += 28;
 
@@ -202,6 +217,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                     working.setModelId(id);
                     pushToServer();
                 })
+                .style(CONTROL_STYLE)
+                .animation(HOVER_ANIMATION)
                 .build());
         y += 28;
 
@@ -228,6 +245,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                         currentUvSide = side;
                         rebuildWidgets();
                     })
+                    .style(CONTROL_STYLE)
                     .build());
             y += 18;
         }
@@ -254,7 +272,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
             rebuildWidgets();
         };
 
-        faceUvPicker = new FaceUVPicker(x, y, pickerSize, currentUvSide.id, currentLayout, commitUv, onSelectFace);
+        faceUvPicker = new FaceUVPicker(x, y, pickerSize, currentUvSide.id, currentLayout, commitUv, onSelectFace)
+                .style(PREVIEW_STYLE);
         faceUvPicker.setSelectedDirectionSilently(currentUvFace);
         addRenderableWidget(faceUvPicker);
 
@@ -273,6 +292,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                     }
                     rebuildWidgets();
                 })
+                .style(CONTROL_STYLE)
                 .build());
         ry += 20;
 
@@ -319,6 +339,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                     commitUv.accept(defaultLayout.copy());
                     rebuildWidgets();
                 })
+                .style(CONTROL_STYLE)
+                .animation(HOVER_ANIMATION)
                 .build());
 
         addDoneButton();
@@ -329,6 +351,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .bounds(panelX() + PADDING, panelY() + PANEL_HEIGHT - 24, SLIDER_WIDTH, 20)
                 .message(Component.translatable("gui.done"))
                 .onPress(btn -> onClose())
+                .style(ACCENT_STYLE)
+                .animation(HOVER_ANIMATION)
                 .build());
     }
 
@@ -342,6 +366,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .formatterString(v -> String.format("%.0f%%", v * 100.0))
                 .onValueChanged(v -> working.setSize((float) (double) v))
                 .onValueCommitted(v -> pushToServer())
+                .style(CONTROL_STYLE)
+                .animation(HOVER_ANIMATION)
                 .build();
     }
 
@@ -355,6 +381,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .formatterString(v -> String.format("%.0f%%", v * 100.0))
                 .onValueChanged(v -> working.setPetite((float) (double) v))
                 .onValueCommitted(v -> pushToServer())
+                .style(CONTROL_STYLE)
+                .animation(HOVER_ANIMATION)
                 .build();
     }
 
@@ -369,6 +397,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .formatterString(v -> String.format("%.2f", v))
                 .onValueChanged(v -> setter.accept((float) (double) v))
                 .onValueCommitted(v -> pushToServer())
+                .style(CONTROL_STYLE)
+                .animation(HOVER_ANIMATION)
                 .build();
     }
 
@@ -382,6 +412,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .formatterString(v -> String.format("%.3f", v))
                 .onValueChanged(v -> working.setSpread((float) (double) v))
                 .onValueCommitted(v -> pushToServer())
+                .style(CONTROL_STYLE)
+                .animation(HOVER_ANIMATION)
                 .build();
     }
 
@@ -395,6 +427,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .formatterString(v -> String.format("%.3f", v))
                 .onValueChanged(v -> working.setCleavage((float) (double) v))
                 .onValueCommitted(v -> pushToServer())
+                .style(CONTROL_STYLE)
+                .animation(HOVER_ANIMATION)
                 .build();
     }
 
@@ -408,6 +442,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .formatterString(v -> String.format("%.0f%%", v * 100.0))
                 .onValueChanged(v -> working.setBounceStrength((float) (double) v))
                 .onValueCommitted(v -> pushToServer())
+                .style(CONTROL_STYLE)
+                .animation(HOVER_ANIMATION)
                 .build();
     }
 
@@ -421,6 +457,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .formatterString(v -> String.format("%.0f%%", v * 100.0))
                 .onValueChanged(v -> working.setSoftness((float) (double) v))
                 .onValueCommitted(v -> pushToServer())
+                .style(CONTROL_STYLE)
+                .animation(HOVER_ANIMATION)
                 .build();
     }
 
@@ -434,6 +472,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .formatterString(v -> String.format("%d px", (int) Math.round(v)))
                 .onValueChanged(v -> setter.accept((int) Math.round(v)))
                 .onValueCommitted(v -> pushToServer())
+                .style(CONTROL_STYLE)
+                .animation(HOVER_ANIMATION)
                 .build();
     }
 
@@ -444,5 +484,13 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
     @Override
     protected void renderPanelContent(GuiGraphicsExtractor graphics, int panelX, int panelY,
             int mouseX, int mouseY, float delta) {
+        // A quiet header band gives the screen a clear visual hierarchy without
+        // competing with the player preview or the UV editor.
+        FranklyUiStyle.drawRoundedRect(graphics, panelX + 8, panelY + 7, PANEL_WIDTH - 16, 29,
+                0x99131A31, 6);
+        graphics.fill(panelX + 18, panelY + 15, panelX + 52, panelY + 17, 0xFFB98AFF);
+        graphics.fill(panelX + 56, panelY + 15, panelX + 72, panelY + 17, 0xFF688EDC);
+        Component tab = Component.translatable("tab.anatomica." + currentTab.name().toLowerCase());
+        graphics.text(font, tab, panelX + PANEL_WIDTH - 18 - font.width(tab), panelY + 11, 0xFF8EA7FF, false);
     }
 }

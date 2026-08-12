@@ -3,6 +3,8 @@ package com.frank1o3.anatomica.client.gui;
 import com.frank1o3.anatomica.uv.UVDirection;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.anatomica.uv.UVQuad;
+import com.frank1o3.franklylib.client.gui.style.FranklyUiStyle;
+import com.frank1o3.franklylib.client.gui.style.FranklyUiStyles;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -10,7 +12,9 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.function.Consumer;
@@ -36,6 +40,7 @@ public final class FaceUVPicker extends AbstractWidget {
 
     private boolean draggingMin;
     private boolean draggingMax;
+    private @Nullable Identifier style;
 
     public FaceUVPicker(int x, int y, int size, int side, UVLayout layout,
             Consumer<UVLayout> onCommit, Consumer<UVDirection> onSelectFace) {
@@ -77,6 +82,12 @@ public final class FaceUVPicker extends AbstractWidget {
         return layout;
     }
 
+    /** Applies a FranklyLib resource-pack style to the picker frame. */
+    public FaceUVPicker style(@Nullable Identifier style) {
+        this.style = style;
+        return this;
+    }
+
     private float scale() {
         return (float) width / TEXTURE_SIZE;
     }
@@ -84,8 +95,11 @@ public final class FaceUVPicker extends AbstractWidget {
     @Override
     protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         var player = Minecraft.getInstance().player;
-        // Background border & skin texture
-        graphics.fill(getX() - 1, getY() - 1, getX() + width + 1, getY() + height + 1, 0xFF_555577);
+        // Background frame & skin texture.
+        FranklyUiStyles.resolve(style, new FranklyUiStyle(0xFF222222, 0xFF222222, 0xFF222222,
+                0xFF555577, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0,
+                FranklyUiStyle.BorderType.SQUARE, 0, 1))
+                .drawBox(graphics, getX() - 1, getY() - 1, width + 2, height + 2, isHoveredOrFocused(), active);
         if (player != null) {
             graphics.blit(RenderPipelines.GUI_TEXTURED, player.getSkin().body().texturePath(),
                     getX(), getY(), // destination x, y
