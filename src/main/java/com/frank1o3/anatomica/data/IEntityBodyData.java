@@ -2,10 +2,10 @@ package com.frank1o3.anatomica.data;
 
 import java.util.UUID;
 
-import com.frank1o3.anatomica.config.IBodyConfig;
+import net.minecraft.nbt.CompoundTag;
 
 /**
- * * Common contract for storage of per-entity Anatomica body configurations. *
+ * Common contract for server storage of per-entity Anatomica body data.
  * *
  * <p>
  * The concrete implementation may use a cache, map, or another storage *
@@ -14,21 +14,18 @@ import com.frank1o3.anatomica.config.IBodyConfig;
  */
 public interface IEntityBodyData {
     /**
-     * * Returns the configuration for an entity. * *
-     * <p>
-     * The implementation may create and return a default configuration when * no
-     * configuration has previously been stored.
-     * </p>
+     * Returns a copy of the serialized configuration for an entity, or {@code null}
+     * when that entity has not sent one yet.
      */
-    IBodyConfig get(UUID uuid);
+    CompoundTag get(UUID uuid);
 
     /**
      * * Returns whether an explicitly stored configuration exists for the entity.
      */
     boolean has(UUID uuid);
 
-    /** * Stores a configuration for an entity. */
-    void put(UUID uuid, IBodyConfig config);
+    /** Stores a serialized configuration for an entity. */
+    void put(UUID uuid, CompoundTag config);
 
     /** * Removes the configuration for an entity. */
     void remove(UUID uuid);

@@ -1,7 +1,6 @@
 package com.frank1o3.anatomica.client.render;
 
 import com.frank1o3.anatomica.config.IBodyConfig;
-import com.frank1o3.anatomica.config.Services;
 import com.frank1o3.anatomica.client.data.EntityBodyData;
 import com.frank1o3.anatomica.physics.LivingEntityLike;
 import com.frank1o3.anatomica.client.physics.ClientLivingEntityAdapter;
@@ -45,7 +44,7 @@ public final class BodyPhysicsTicker {
             if (!EntityBodyData.INSTANCE.has(uuid)) {
                 continue;
             }
-            IBodyConfig config = Services.entityBodyData().get(uuid);
+            IBodyConfig config = EntityBodyData.INSTANCE.get(uuid);
             LivingEntityLike adapter = new ClientLivingEntityAdapter(player);
             ClientBodyPhysics.get(uuid).tick(FIXED_DELTA_TIME, adapter, config);
         }

@@ -3,10 +3,11 @@ package com.frank1o3.anatomica.client.gui.screen;
 import com.frank1o3.anatomica.client.gui.FaceUVPicker;
 import com.frank1o3.anatomica.client.networking.AnatomicaClientNetworking;
 import com.frank1o3.anatomica.client.config.AnatomicaConfig;
+import com.frank1o3.anatomica.client.config.BodyConfig;
+import com.frank1o3.anatomica.client.data.EntityBodyData;
 import com.frank1o3.anatomica.model.ModelFactory;
 import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.config.IBodyConfig;
-import com.frank1o3.anatomica.config.Services;
 import com.frank1o3.anatomica.uv.UVDirection;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.anatomica.uv.UVQuad;
@@ -64,8 +65,8 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
         if (working == null) {
             Minecraft client = Minecraft.getInstance();
             working = client.player != null
-                    ? Services.entityBodyData().get(client.player.getUUID()).copy()
-                    : Services.bodyConfigSerializer().createDefaultBodyConfig();
+                    ? EntityBodyData.INSTANCE.get(client.player.getUUID()).copy()
+                    : new BodyConfig();
         }
 
         int x = panelX() + PADDING;

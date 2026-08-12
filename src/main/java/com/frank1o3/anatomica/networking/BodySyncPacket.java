@@ -1,8 +1,6 @@
 package com.frank1o3.anatomica.networking;
 
 import com.frank1o3.anatomica.Anatomica;
-import com.frank1o3.anatomica.config.Services;
-import com.frank1o3.anatomica.config.IBodyConfig;
 
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
@@ -15,16 +13,9 @@ import net.minecraft.resources.Identifier;
 import java.util.UUID;
 
 /**
- * Carries one entity's {@link IBodyConfig}, serialized through the same NBT
- * path
- * used
- * for disk persistence ({@link IBodyConfig#toNbt()} /
- * {@link IBodyConfig#fromNbt}) —
- * there is exactly one serialization format for this data, used for both disk
- * and
- * network, rather than a hand-maintained parallel wire format that could drift
- * out of
- * sync with the disk format over time.
+ * Carries one entity's serialized body configuration. The common networking
+ * layer treats this NBT as opaque so it can run on a dedicated server without
+ * loading client-only configuration classes.
  *
  * <p>
  * Sent client -> server when the local player changes their own config, and
@@ -42,14 +33,8 @@ public record BodySyncPacket(UUID uuid, CompoundTag data) implements CustomPacke
             ByteBufCodecs.COMPOUND_TAG, BodySyncPacket::data,
             BodySyncPacket::new);
 
-    public static BodySyncPacket of(UUID uuid, IBodyConfig config) {
-        return new BodySyncPacket(
-                uuid,
-                Services.bodyConfigSerializer().bodyConfigToNbt(config));
-    }
-
-    public IBodyConfig toConfig() {
-        return Services.bodyConfigSerializer().bodyConfigFromNbt(data);
+    public static BodySyncPacket of(UUID uuid, CompoundTag data) {
+        return new BodySyncPacket(uuid, data.copy());
     }
 
     @Override

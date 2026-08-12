@@ -5,8 +5,8 @@ import com.frank1o3.anatomica.model.IDeformableModel;
 import com.frank1o3.anatomica.model.ModelFactory;
 import com.frank1o3.anatomica.physics.IPhysicsEngine;
 import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
+import com.frank1o3.anatomica.client.data.EntityBodyData;
 import com.frank1o3.anatomica.config.IBodyConfig;
-import com.frank1o3.anatomica.config.Services;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.franklylib.Vec3;
 import com.frank1o3.franklylib.client.render.AttachmentPoint;
@@ -72,7 +72,7 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
             return;
 
         UUID uuid = bodyState.uuid;
-        IBodyConfig config = Services.entityBodyData().get(uuid);
+        IBodyConfig config = EntityBodyData.INSTANCE.get(uuid);
 
         if (!config.breastsEnabled())
             return;

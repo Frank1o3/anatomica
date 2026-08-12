@@ -1,11 +1,8 @@
 package com.frank1o3.anatomica.config;
 
-import com.frank1o3.anatomica.data.IEntityBodyData;
-
 public final class Services {
 
     private static IBodyConfigSerializer bodyConfigSerializer;
-    private static IEntityBodyData entityBodyData;
 
     private Services() {
     }
@@ -26,19 +23,4 @@ public final class Services {
         return bodyConfigSerializer;
     }
 
-    public static void registerEntityBodyData(IEntityBodyData storage) {
-        if (entityBodyData != null) {
-            throw new IllegalStateException("EntityBodyData already registered.");
-        }
-
-        entityBodyData = storage;
-    }
-
-    public static IEntityBodyData entityBodyData() {
-        if (entityBodyData == null) {
-            throw new IllegalStateException("No EntityBodyData registered.");
-        }
-
-        return entityBodyData;
-    }
 }

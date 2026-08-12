@@ -1,8 +1,8 @@
 package com.frank1o3.anatomica.client.networking;
 
+import com.frank1o3.anatomica.client.config.BodyConfig;
 import com.frank1o3.anatomica.client.data.EntityBodyData;
 import com.frank1o3.anatomica.config.IBodyConfig;
-import com.frank1o3.anatomica.config.Services;
 import com.frank1o3.anatomica.networking.BodySyncPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
@@ -23,7 +23,7 @@ public final class AnatomicaClientNetworking {
 
     public static void register() {
         ClientPlayNetworking.registerGlobalReceiver(BodySyncPacket.TYPE, (payload, context) -> {
-            Services.entityBodyData().put(payload.uuid(), payload.toConfig());
+            EntityBodyData.INSTANCE.put(payload.uuid(), BodyConfig.fromNbt(payload.data()));
         });
     }
 
@@ -39,7 +39,15 @@ public final class AnatomicaClientNetworking {
             return;
         }
         UUID uuid = client.player.getUUID();
-        Services.entityBodyData().put(uuid, config); // update locally immediately, don't wait for the round trip
-        ClientPlayNetworking.send(BodySyncPacket.of(uuid, config));
+        BodyConfig bodyConfig = requireClientConfig(config);
+        EntityBodyData.INSTANCE.put(uuid, bodyConfig); // update locally immediately, don't wait for the round trip
+        ClientPlayNetworking.send(BodySyncPacket.of(uuid, bodyConfig.toNbt()));
+    }
+
+    private static BodyConfig requireClientConfig(IBodyConfig config) {
+        if (config instanceof BodyConfig bodyConfig) {
+            return bodyConfig;
+        }
+        throw new IllegalArgumentException("Expected a client BodyConfig");
     }
 }
