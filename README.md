@@ -2,20 +2,37 @@
 
 Anatomica is a client-focused Fabric mod for Minecraft that adds configurable, physics-driven body attachments to player avatars. It is a hobby project inspired by Female Gender Mod, but it is not intended to replace it. Anatomica has its own architecture and is being developed as an experiment in modular body rendering, physics, and resource-pack customization.
 
-## Current features
+## Status
+
+Anatomica is in **stable beta**. Its core customization, rendering, physics,
+networking, and extension systems are implemented and usable in normal play.
+The remaining work is focused on polish and compatibility—especially a few
+texture-rotation edge cases—before the mod can be considered ready for a full
+release.
+
+## Features
 
 - Per-player body customization: enablement, size, offsets, spread, cleavage, model selection, and physics settings.
 - A node-based soft-body physics engine with walking, jumping, falling, turning, and pose inputs.
-- Built-in box, organic, and rounded attachment models.
+- Built-in wedge, organic, and rounded attachment models.
 - Per-face skin UV selection and an in-game UV editor.
-- Client-side rendering separated from common/server-safe configuration and synchronization code.
+- Client-side rendering, armor rendering, and server-safe configuration synchronization.
+- Pluggable registries for deformable models and physics engines, with safe defaults when a saved entry is unavailable.
 - Integration with FranklyLib for reusable UI and rendering utilities.
 
-## Direction
+## Extensibility
 
-The long-term goal is to make custom body models data-driven: resource packs should eventually be able to define models with JSON instead of requiring Java code. The built-in physics engines will remain code-driven, because they contain the simulation logic; the current soft-body engine is the first of these. A lightweight rigid-body engine and an armor rendering layer are planned, but are not implemented yet.
+Anatomica's model and physics selection is data-driven through mod registries.
+Additional models and physics engines are supplied as mod code rather than
+resource-pack JSON. This keeps stateful rendering and simulation behavior in a
+controlled code path, avoiding race conditions associated with runtime resource
+loading while still allowing other mods to extend the available content.
 
-This mod is not a finished replacement for Female Gender Mod. It is a learning-oriented hobby project and may contain rendering issues, compatibility gaps, unfinished features, and breaking changes while its systems are refined.
+The beta still has minor texture-rotation fixes and general polish remaining.
+Compatibility testing and feedback are especially valuable at this stage.
+
+Anatomica is inspired by Female Gender Mod, but is a separate project with its
+own architecture and goals; it is not intended as a drop-in replacement.
 
 ## FranklyLib
 
