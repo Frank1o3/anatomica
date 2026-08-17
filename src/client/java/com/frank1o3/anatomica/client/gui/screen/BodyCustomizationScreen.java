@@ -110,6 +110,7 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .bounds(x + sliderWidth + PADDING, y, previewWidth, 140)
                 .previewSize(36)
                 .entity(() -> Minecraft.getInstance().player)
+                .lockedScale(1.0f)
                 .style(PREVIEW_STYLE)
                 .build());
 
