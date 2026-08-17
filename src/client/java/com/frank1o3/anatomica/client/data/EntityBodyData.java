@@ -19,7 +19,7 @@ public final class EntityBodyData {
 
     private static final LoadingCache<UUID, BodyConfig> CACHE = CacheBuilder.newBuilder()
             .expireAfterAccess(EXPIRE_AFTER_ACCESS)
-            .build(CacheLoader.from(BodyConfig::new));
+            .build(CacheLoader.from(ignored -> new BodyConfig()));
 
     private EntityBodyData() {
     }

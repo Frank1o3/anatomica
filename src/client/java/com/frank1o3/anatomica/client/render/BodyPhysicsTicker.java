@@ -8,6 +8,9 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Advances every locally-visible player's {@link ClientBodyPhysics} by one
  * tick, once
@@ -39,8 +42,10 @@ public final class BodyPhysicsTicker {
         if (client.level == null) {
             return;
         }
+        Set<java.util.UUID> activeEntityIds = new HashSet<>();
         for (Player player : client.level.players()) {
             var uuid = player.getUUID();
+            activeEntityIds.add(uuid);
             if (!EntityBodyData.INSTANCE.has(uuid)) {
                 continue;
             }
@@ -48,5 +53,6 @@ public final class BodyPhysicsTicker {
             LivingEntityLike adapter = new ClientLivingEntityAdapter(player);
             ClientBodyPhysics.get(uuid).tick(FIXED_DELTA_TIME, adapter, config);
         }
+        ClientBodyPhysics.retainFor(activeEntityIds);
     }
 }

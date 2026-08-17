@@ -4,6 +4,10 @@ import net.minecraft.network.chat.Component;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
+/**
+ * Directions with editable UV regions. SOUTH is intentionally omitted: Anatomica
+ * attachment meshes sit against the player model and never render a back face.
+ */
 public enum UVDirection {
     EAST("east", "East", "E", 0xFFFF4444, new Vector3f(1, 0, 0)),
     WEST("west", "West", "W", 0xFF44FF44, new Vector3f(-1, 0, 0)),

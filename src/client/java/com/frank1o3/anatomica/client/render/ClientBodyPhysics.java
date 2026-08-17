@@ -8,6 +8,7 @@ import com.frank1o3.anatomica.client.config.BodyConfig;
 import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -43,6 +44,11 @@ public final class ClientBodyPhysics {
 
     public static void clearAll() {
         HOLDERS.clear();
+    }
+
+    /** Drops simulation state for entities no longer present in the client world. */
+    public static void retainFor(Set<UUID> activeEntityIds) {
+        HOLDERS.keySet().retainAll(activeEntityIds);
     }
 
     /**

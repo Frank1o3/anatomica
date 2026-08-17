@@ -48,6 +48,11 @@ public final class BodyArmorRenderLayer<S extends AvatarRenderState, M extends H
         this.equipmentAssets = equipmentAssets;
     }
 
+    /** Invalidates resource-dependent model instances after a resource reload. */
+    public static void clearModelCache() {
+        MODEL_INSTANCE_CACHE.clear();
+    }
+
     @Override
     public void submit(PoseStack poseStack, SubmitNodeCollector renderQueue, int packedLight,
             S state, float limbAngle, float limbDistance) {

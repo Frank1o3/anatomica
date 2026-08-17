@@ -3,6 +3,8 @@ package com.frank1o3.anatomica.networking;
 import com.frank1o3.anatomica.uv.UVDirection;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.anatomica.uv.UVQuad;
+import com.mojang.serialization.Codec;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 
 /**
@@ -18,6 +20,10 @@ public record BodySyncData(
         String physicsEngineId, String modelId, boolean showInArmor) {
 
     private static final int MAX_IDENTIFIER_LENGTH = 128;
+
+    /** NBT codec used exclusively for server-side saved data. */
+    public static final Codec<BodySyncData> NBT_CODEC = CompoundTag.CODEC.xmap(BodySyncData::fromNbt,
+            BodySyncData::toNbt);
 
     public static void encode(RegistryFriendlyByteBuf buffer, BodySyncData data) {
         int flags = (data.breastsEnabled ? 1 : 0)
@@ -102,6 +108,61 @@ public record BodySyncData(
                 layout.put(direction, new UVQuad(buffer.readUnsignedByte(), buffer.readUnsignedByte(),
                         buffer.readUnsignedByte(), buffer.readUnsignedByte()));
             }
+        }
+        return layout;
+    }
+
+    private CompoundTag toNbt() {
+        CompoundTag tag = new CompoundTag();
+        tag.putBoolean("breastsEnabled", breastsEnabled);
+        tag.putFloat("size", size); tag.putFloat("petite", petite);
+        tag.putFloat("offsetX", offsetX); tag.putFloat("offsetY", offsetY); tag.putFloat("offsetZ", offsetZ);
+        tag.put("leftUvLayout", writeLayout(leftUvLayout));
+        tag.put("rightUvLayout", writeLayout(rightUvLayout));
+        tag.putFloat("spread", spread); tag.putFloat("cleavage", cleavage);
+        tag.putBoolean("independentSides", independentSides); tag.putBoolean("physicsEnabled", physicsEnabled);
+        tag.putFloat("bounceStrength", bounceStrength); tag.putFloat("softness", softness);
+        tag.putString("physicsEngineId", physicsEngineId); tag.putString("modelId", modelId);
+        tag.putBoolean("showInArmor", showInArmor);
+        return tag;
+    }
+
+    private static BodySyncData fromNbt(CompoundTag tag) {
+        return new BodySyncData(tag.getBooleanOr("breastsEnabled", false), tag.getFloatOr("size", 0.5F),
+                tag.getFloatOr("petite", 0.0F), tag.getFloatOr("offsetX", 0.0F),
+                tag.getFloatOr("offsetY", 0.0F), tag.getFloatOr("offsetZ", 0.0F),
+                readLayout(tag.getCompoundOrEmpty("leftUvLayout")), readLayout(tag.getCompoundOrEmpty("rightUvLayout")),
+                tag.getFloatOr("spread", 0.0F), tag.getFloatOr("cleavage", 0.0F),
+                tag.getBooleanOr("independentSides", false), tag.getBooleanOr("physicsEnabled", true),
+                tag.getFloatOr("bounceStrength", 0.5F), tag.getFloatOr("softness", 0.5F),
+                tag.getStringOr("physicsEngineId", "anatomica:softbody"),
+                tag.getStringOr("modelId", "anatomica:breast"), tag.getBooleanOr("showInArmor", true));
+    }
+
+    private static CompoundTag writeLayout(UVLayout layout) {
+        CompoundTag tag = new CompoundTag();
+        for (UVDirection direction : UVDirection.values()) {
+            UVQuad quad = layout.get(direction);
+            if (quad == null) {
+                continue;
+            }
+            CompoundTag quadTag = new CompoundTag();
+            quadTag.putInt("x1", quad.x1()); quadTag.putInt("y1", quad.y1());
+            quadTag.putInt("x2", quad.x2()); quadTag.putInt("y2", quad.y2());
+            tag.put(direction.getSaveName(), quadTag);
+        }
+        return tag;
+    }
+
+    private static UVLayout readLayout(CompoundTag tag) {
+        UVLayout layout = new UVLayout();
+        for (UVDirection direction : UVDirection.values()) {
+            if (!tag.contains(direction.getSaveName())) {
+                continue;
+            }
+            CompoundTag quadTag = tag.getCompoundOrEmpty(direction.getSaveName());
+            layout.put(direction, new UVQuad(quadTag.getIntOr("x1", 0), quadTag.getIntOr("y1", 0),
+                    quadTag.getIntOr("x2", 0), quadTag.getIntOr("y2", 0)));
         }
         return layout;
     }

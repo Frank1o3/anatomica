@@ -9,10 +9,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 
 /**
- * A single entity's body customization state. Pure data — no Minecraft client
- * imports, no persistence/networking logic of its own. Serialization is driven
- * generically by {@link AnatomicaConfig}'s registered key table so disk and
- * network code share exactly one read/write path.
+ * A single entity's body customization state. FranklyLib serializes its
+ * {@link ConfigEntry}-annotated fields to the active JSON profile; the
+ * {@link AnatomicaConfig} key table remains solely to migrate legacy NBT
+ * profiles. Network synchronization uses {@link BodySyncData} directly.
  */
 public final class BodyConfig implements IBodyConfig {
     @ConfigEntry(id = "breasts_enabled")
@@ -51,6 +51,27 @@ public final class BodyConfig implements IBodyConfig {
     private boolean showInArmor = AnatomicaConfig.SHOW_IN_ARMOR.defaultValue();
 
     public BodyConfig() {
+    }
+
+    /** Creates an independent copy without serializing through NBT. */
+    public BodyConfig(BodyConfig other) {
+        breastsEnabled = other.breastsEnabled;
+        size = other.size;
+        petite = other.petite;
+        offsetX = other.offsetX;
+        offsetY = other.offsetY;
+        offsetZ = other.offsetZ;
+        leftUvLayout = other.leftUvLayout.copy();
+        rightUvLayout = other.rightUvLayout.copy();
+        spread = other.spread;
+        cleavage = other.cleavage;
+        independentSides = other.independentSides;
+        physicsEnabled = other.physicsEnabled;
+        bounceStrength = other.bounceStrength;
+        softness = other.softness;
+        physicsEngineId = other.physicsEngineId;
+        modelId = other.modelId;
+        showInArmor = other.showInArmor;
     }
 
     // -------------------------------------------------------------------
@@ -197,6 +218,7 @@ public final class BodyConfig implements IBodyConfig {
     // Serialization
     // -------------------------------------------------------------------
 
+    /** Serializes the legacy NBT profile format for backwards-compatible migration. */
     public CompoundTag toNbt() {
         CompoundTag tag = new CompoundTag();
         for (AnatomicaConfig.RegisteredKey<?> entry : AnatomicaConfig.ENTRIES) {
@@ -205,6 +227,7 @@ public final class BodyConfig implements IBodyConfig {
         return tag;
     }
 
+    /** Reads the legacy NBT profile format. New profiles use FranklyLib JSON. */
     public static BodyConfig fromNbt(CompoundTag tag) {
         BodyConfig config = new BodyConfig();
         for (AnatomicaConfig.RegisteredKey<?> entry : AnatomicaConfig.ENTRIES) {
@@ -214,7 +237,7 @@ public final class BodyConfig implements IBodyConfig {
     }
 
     public BodyConfig copy() {
-        return fromNbt(toNbt());
+        return new BodyConfig(this);
     }
 
     /** Converts to the compact, NBT-free representation used on the network. */

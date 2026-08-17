@@ -57,12 +57,21 @@ public final class ClientBodyConfigStorage {
     }
 
     private static FranklyConfigHolder<BodyConfig> holderFor(UUID uuid) {
+        ensureConfigDirectory();
         return HOLDERS.computeIfAbsent(uuid, ignored -> FranklyConfigHolder
                 .builder(BodyConfig.class, BodyConfig::new)
                 .path(jsonFileFor(uuid))
                 .autosaveTicks(0)
                 .staleCheckTicks(0)
                 .build());
+    }
+
+    private static void ensureConfigDirectory() {
+        try {
+            Files.createDirectories(CONFIG_DIRECTORY);
+        } catch (IOException exception) {
+            throw new IllegalStateException("Could not create Anatomica profile directory", exception);
+        }
     }
 
     private static Optional<BodyConfig> loadLegacy(Path file) {

@@ -39,6 +39,7 @@ public class UVLayout {
         quads.put(UVDirection.NORTH, north);
     }
 
+    /** Creates an empty layout; mesh vertices then retain their raw UV coordinates. */
     public UVLayout() {
         this(Collections.emptyMap());
     }

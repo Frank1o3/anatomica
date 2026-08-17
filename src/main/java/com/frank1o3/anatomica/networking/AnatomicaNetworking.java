@@ -1,6 +1,5 @@
 package com.frank1o3.anatomica.networking;
 
-import com.frank1o3.anatomica.data.IEntityBodyData;
 import com.frank1o3.anatomica.data.ServerEntityBodyData;
 
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
@@ -41,13 +40,7 @@ import java.util.UUID;
  */
 public final class AnatomicaNetworking {
 
-    private static final IEntityBodyData BODY_DATA = new ServerEntityBodyData();
-
     private AnatomicaNetworking() {
-    }
-
-    /** No-op call to force this class's static initializers to run early. */
-    public static void bootstrap() {
     }
 
     public static void registerCommon() {
@@ -56,7 +49,7 @@ public final class AnatomicaNetworking {
 
         ServerPlayNetworking.registerGlobalReceiver(BodySyncUploadPacket.TYPE, (payload, context) -> {
             ServerPlayer sender = context.player();
-            BODY_DATA.put(sender.getUUID(), payload.data());
+            ServerEntityBodyData.get(sender.level().getServer()).put(sender.getUUID(), payload.data());
             broadcastToTrackingPlayers(sender, new BodySyncPacket(sender.getUUID(), payload.data()));
         });
 
@@ -69,8 +62,9 @@ public final class AnatomicaNetworking {
                 return;
             }
             UUID uuid = trackedPlayer.getUUID();
-            if (BODY_DATA.has(uuid)) {
-                ServerPlayNetworking.send(observer, new BodySyncPacket(uuid, BODY_DATA.get(uuid)));
+            ServerEntityBodyData data = ServerEntityBodyData.get(trackedPlayer.level().getServer());
+            if (data.has(uuid)) {
+                ServerPlayNetworking.send(observer, new BodySyncPacket(uuid, data.get(uuid)));
             }
         });
     }

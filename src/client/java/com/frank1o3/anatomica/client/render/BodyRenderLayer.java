@@ -55,6 +55,11 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
         this.context = parent;
     }
 
+    /** Invalidates resource-dependent model instances after a resource reload. */
+    public static void clearModelCache() {
+        MODEL_INSTANCE_CACHE.clear();
+    }
+
     private @Nullable RenderType resolveBodyRenderType(S state) {
         boolean bodyVisible = !state.isInvisible;
         boolean translucent = state.isInvisible && !state.isInvisibleToPlayer;

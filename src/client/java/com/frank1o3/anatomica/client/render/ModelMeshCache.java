@@ -27,6 +27,11 @@ public final class ModelMeshCache {
         return CACHE.computeIfAbsent(new Key(model, layout), key -> build(key.model(), key.layout()));
     }
 
+    /** Invalidates meshes after client resources have reloaded. */
+    public static void clear() {
+        CACHE.clear();
+    }
+
     private static Mesh build(IDeformableModel model, UVLayout layout) {
         ModelVertex[] source = model.baseVertices();
         MeshVertex[] meshVertices = new MeshVertex[source.length];
