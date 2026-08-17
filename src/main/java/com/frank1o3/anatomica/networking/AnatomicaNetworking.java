@@ -1,44 +1,25 @@
 package com.frank1o3.anatomica.networking;
 
+import com.frank1o3.anatomica.Anatomica;
 import com.frank1o3.anatomica.data.ServerEntityBodyData;
 
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Registers {@link BodySyncPacket}'s payload type for both directions and wires
- * up the
- * server-side relay: a client's own sync is validated (sender must own the UUID
- * they're
- * syncing), stored into {@link IEntityBodyData}, then re-broadcast to every
- * player
- * currently tracking that entity. Newly-tracking players get one immediate sync
- * of the
- * tracked player's current config rather than waiting for that player's next
- * change.
- *
- * <p>
- * There is no handshake/version packet and no authentication beyond "the UUID
- * in the
- * packet must equal the sender's own UUID" — no accounts, no cloud service,
- * nothing
- * beyond what vanilla server-authoritative multiplayer already provides.
- *
- * <p>
- * Note: exact Fabric API package paths (event classes in particular) can shift
- * between
- * Minecraft/Fabric API versions — verify these imports resolve against the
- * Fabric API
- * version pinned in {@code gradle.properties} and adjust the event hook lookups
- * (tracking-start equivalent) to whatever that version exposes if they've
- * moved.
- */
 public final class AnatomicaNetworking {
+
+    /** Minimum time between accepted uploads from a single player. */
+    private static final long MIN_UPLOAD_INTERVAL_MS = 250;
+    private static final Map<UUID, Long> LAST_UPLOAD_TIME = new ConcurrentHashMap<>();
 
     private AnatomicaNetworking() {
     }
@@ -49,14 +30,26 @@ public final class AnatomicaNetworking {
 
         ServerPlayNetworking.registerGlobalReceiver(BodySyncUploadPacket.TYPE, (payload, context) -> {
             ServerPlayer sender = context.player();
-            ServerEntityBodyData.get(sender.level().getServer()).put(sender.getUUID(), payload.data());
-            broadcastToTrackingPlayers(sender, new BodySyncPacket(sender.getUUID(), payload.data()));
+            UUID uuid = sender.getUUID();
+
+            if (isRateLimited(uuid)) {
+                Anatomica.LOGGER.debug(
+                        "[Anatomica] Dropped body sync upload from {}: rate limit ({}ms).",
+                        sender.getName().getString(), MIN_UPLOAD_INTERVAL_MS);
+                return;
+            }
+
+            if (!isValid(payload.data())) {
+                Anatomica.LOGGER.warn(
+                        "[Anatomica] Dropped body sync upload from {}: failed validation.",
+                        sender.getName().getString());
+                return;
+            }
+
+            ServerEntityBodyData.get(sender.level().getServer()).put(uuid, payload.data());
+            broadcastToTrackingPlayers(sender, new BodySyncPacket(uuid, payload.data()));
         });
 
-        // Fires when a player enters tracking range of another entity. If we already
-        // have a config cached for the newly-visible entity, send it once immediately
-        // so the newly-tracking player doesn't have to wait for the tracked player's
-        // next change.
         registerStartTrackingHook((trackedEntity, observer) -> {
             if (!(trackedEntity instanceof ServerPlayer trackedPlayer)) {
                 return;
@@ -69,26 +62,48 @@ public final class AnatomicaNetworking {
         });
     }
 
+    /**
+     * Removes rate-limit state for a disconnected player. Call from your DISCONNECT
+     * hook.
+     */
+    public static void removePlayerState(UUID uuid) {
+        LAST_UPLOAD_TIME.remove(uuid);
+    }
+
+    private static boolean isRateLimited(UUID uuid) {
+        long now = System.currentTimeMillis();
+        Long last = LAST_UPLOAD_TIME.get(uuid);
+        if (last != null && (now - last) < MIN_UPLOAD_INTERVAL_MS) {
+            return true;
+        }
+        LAST_UPLOAD_TIME.put(uuid, now);
+        return false;
+    }
+
+    /**
+     * Belt-and-suspenders structural check. The wire format's own bounds already
+     * prevent out-of-range numerics (see BodySyncData's fixed-point encoding), so
+     * this exists mainly to reject unresolvable identifiers explicitly and log
+     * them, rather than silently falling back to a registry default.
+     */
+    private static boolean isValid(BodySyncData data) {
+        if (data.physicsEngineId() == null || data.physicsEngineId().isBlank()
+                || data.modelId() == null || data.modelId().isBlank()) {
+            return false;
+        }
+        return Identifier.tryParse(data.physicsEngineId()) != null
+                && Identifier.tryParse(data.modelId()) != null;
+    }
+
     private static void broadcastToTrackingPlayers(ServerPlayer sender, BodySyncPacket payload) {
         for (ServerPlayer tracking : PlayerLookup.tracking(sender)) {
             ServerPlayNetworking.send(tracking, payload);
         }
-        // Also send back to the sender's own other clients / the sender itself, so a
-        // player who edits their own config sees it echoed the same way anyone else
-        // tracking them would.
         ServerPlayNetworking.send(sender, payload);
     }
 
-    /**
-     * Thin seam around Fabric API's tracking-start event so the exact event class
-     * can
-     * be swapped in one place if it differs from what's assumed here. Wire this up
-     * to
-     * {@code net.fabricmc.fabric.api.entity.event.v1.EntityTrackingEvents.START_TRACKING}
-     * (or whatever the equivalent is in the Fabric API version this project pins).
-     */
     private interface StartTrackingHandler {
-        void onStartTracking(net.minecraft.world.entity.Entity trackedEntity, ServerPlayer observer);
+        void onStartTracking(Entity trackedEntity, ServerPlayer observer);
     }
 
     private static void registerStartTrackingHook(StartTrackingHandler handler) {
