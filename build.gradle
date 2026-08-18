@@ -6,15 +6,25 @@ plugins {
 version = project.mod_version
 group = project.maven_group
 
+def reposiliteHost = System.getenv("GITHUB_ACTIONS") == "true"
+    ? "http://reposilite:8080"
+    : "http://cachyos-server:8080"
+
 repositories {
-	maven { url = 'https://frank1o3.github.io/franklylib/maven/' }
+	mavenCentral()
+	maven {
+        name = "Reposilite"
+        url = uri("${reposiliteHost}/frank1o3")
+        allowInsecureProtocol = true
+    }
 }
+
 
 loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		"anatomica" {
+		"proportionality" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
@@ -22,10 +32,9 @@ loom {
 }
 
 dependencies {
-	// To change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	implementation "com.frank1o3.franklylib:franklylib:${project.franklylib_version}"
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "com.frank1o3.franklylib:franklylib:${project.franklylib_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 }
 
