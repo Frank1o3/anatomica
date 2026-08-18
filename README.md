@@ -1,56 +1,47 @@
 # Anatomica
 
-Anatomica is a client-focused Fabric mod for Minecraft that adds configurable, physics-driven body attachments to player avatars. It is a hobby project inspired by Female Gender Mod, but it is not intended to replace it. Anatomica has its own architecture and is being developed as an experiment in modular body rendering, physics, and resource-pack customization.
+Anatomica is a Fabric mod that adds configurable, physics-driven body attachments to player avatars. It's a hobby project inspired by Female Gender Mod, though it's a separate mod with its own architecture and isn't intended as a drop-in replacement.
 
 ## Status
 
-Anatomica is in **stable beta**. Its core customization, rendering, physics,
-networking, and extension systems are implemented and usable in normal play.
-The remaining work is focused on polish and compatibility—especially a few
-texture-rotation edge cases—before the mod can be considered ready for a full
-release.
+Anatomica is in **stable beta**. Its core customization, rendering, physics, networking, and extension systems are implemented and usable in normal play. The remaining work is mostly polish and compatibility — especially a few texture-rotation edge cases — before a full release. Compatibility testing and feedback are especially valuable at this stage.
 
 ## Features
 
-- Per-player body customization: enablement, size, offsets, spread, cleavage, model selection, and physics settings.
-- A node-based soft-body physics engine with walking, jumping, falling, turning, and pose inputs.
-- Built-in wedge, organic, and rounded attachment models.
-- Per-face skin UV selection and an in-game UV editor.
-- Client-side rendering, armor rendering, and server-safe configuration synchronization.
-- Pluggable registries for deformable models and physics engines, with safe defaults when a saved entry is unavailable.
-- Integration with FranklyLib for reusable UI and rendering utilities.
+- Per-player body customization: enable/disable, size, offsets, spread, cleavage, model selection, and physics settings.
+- Physics that respond naturally to walking, jumping, falling, turning, and other poses.
+- Several built-in attachment models to choose from.
+- Per-face skin UV selection with an in-game editor.
+- Renders correctly alongside armor and stays synced across multiplayer.
+- Other mods can add their own models and physics engines through code.
+- Built on [FranklyLib](https://github.com/Frank1o3/franklylib) for UI and rendering.
 
-## Extensibility
+## Installation
 
-Anatomica's model and physics selection is data-driven through mod registries.
-Additional models and physics engines are supplied as mod code rather than
-resource-pack JSON. This keeps stateful rendering and simulation behavior in a
-controlled code path, avoiding race conditions associated with runtime resource
-loading while still allowing other mods to extend the available content.
+1. Install **Fabric Loader** for the Minecraft version supported by the mod.
+2. Install **Fabric API**.
+3. Install [**FranklyLib**](https://github.com/Frank1o3/franklylib) — required. See its page for current install notes (it's a manual `.jar` download until its Modrinth listing is approved).
+4. Download the Anatomica `.jar` file and place it in your `mods` folder alongside the others.
 
-The beta still has minor texture-rotation fixes and general polish remaining.
-Compatibility testing and feedback are especially valuable at this stage.
+## Requirements
 
-Anatomica is inspired by Female Gender Mod, but is a separate project with its
-own architecture and goals; it is not intended as a drop-in replacement.
+- Minecraft `26.2`
+- Fabric Loader
+- Fabric API
+- Java 25 or newer
+- [FranklyLib](https://github.com/Frank1o3/franklylib)
+
+## Extending Anatomica
+
+Other mods can register their own body models and physics engines through Anatomica's registries — this is done through mod code rather than resource-pack JSON. See the [source repository](https://github.com/Frank1o3/anatomica) for details.
 
 ## FranklyLib
 
-Anatomica uses [FranklyLib](https://github.com/Frank1o3/franklylib) for its UI and rendering support. Maintaining that library benefits Anatomica and other projects, including planned work to bring the Proportionality mod to older Minecraft versions. Bug reports, testing feedback, documentation improvements, and contributions to FranklyLib are especially welcome.
-
-## Development
-
-The project targets Minecraft 26.2, Fabric Loader, Java 25, Fabric API, and FranklyLib. To start a development client:
-
-```bash
-./gradlew runClient
-```
-
-The development client may use a generated profile/skin. For accurate UV testing, use a stable skin whose torso pixels are easy to identify.
+Anatomica uses FranklyLib for its UI and rendering support. Maintaining that library benefits Anatomica and other projects, so bug reports, testing feedback, and contributions to FranklyLib are welcome too.
 
 ## License
 
-Anatomica is licensed under the [BSD 3-Clause License](LICENSE), the same license used by FranklyLib.
+Anatomica is licensed under the [BSD 3-Clause License](https://github.com/Frank1o3/anatomica/blob/main/LICENSE), the same license used by FranklyLib.
 
 ## Links
 
