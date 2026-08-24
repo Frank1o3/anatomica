@@ -31,5 +31,7 @@
     "model.anatomica.wedge": "Wedge Model",
     "model.anatomica.box": "Box Model",
     "model.anatomica.rounded": "Rounded Model",
-    "model.anatomica.breast": "Breast Model"
+    "model.anatomica.breast": "Breast Model",
+    "model.anatomica.cloth_basic": "Basic Cloth Garment",
+    "option.anatomica.enable_cloth": "Enable Cloth Layer"
 }

@@ -47,6 +47,12 @@ public final class BodyConfig implements IBodyConfig {
     private Identifier physicsEngineId = AnatomicaConfig.PHYSICS_ENGINE_ID.defaultValue();
     @ConfigEntry(id = "model")
     private Identifier modelId = AnatomicaConfig.MODEL_ID.defaultValue();
+    @ConfigEntry(id = "cloth_model")
+    private Identifier clothModelId = AnatomicaConfig.CLOTH_MODEL_ID.defaultValue();
+    @ConfigEntry(id = "cloth_enabled")
+    private boolean clothEnabled = AnatomicaConfig.CLOTH_ENABLED.defaultValue();
+    @ConfigEntry(id = "inner_color")
+    private int innerColor = AnatomicaConfig.INNER_COLOR.defaultValue();
     @ConfigEntry(id = "show_in_armor")
     private boolean showInArmor = AnatomicaConfig.SHOW_IN_ARMOR.defaultValue();
 
@@ -71,6 +77,9 @@ public final class BodyConfig implements IBodyConfig {
         softness = other.softness;
         physicsEngineId = other.physicsEngineId;
         modelId = other.modelId;
+        clothModelId = other.clothModelId;
+        clothEnabled = other.clothEnabled;
+        innerColor = other.innerColor;
         showInArmor = other.showInArmor;
     }
 
@@ -206,6 +215,30 @@ public final class BodyConfig implements IBodyConfig {
         this.modelId = AnatomicaConfig.MODEL_ID.clamp(value);
     }
 
+    public Identifier clothModelId() {
+        return clothModelId;
+    }
+
+    public void setClothModelId(Identifier value) {
+        this.clothModelId = AnatomicaConfig.CLOTH_MODEL_ID.clamp(value);
+    }
+
+    public boolean clothEnabled() {
+        return clothEnabled;
+    }
+
+    public void setClothEnabled(boolean value) {
+        this.clothEnabled = value;
+    }
+
+    public int innerColor() {
+        return innerColor;
+    }
+
+    public void setInnerColor(int value) {
+        this.innerColor = AnatomicaConfig.INNER_COLOR.clamp(value);
+    }
+
     public boolean showInArmor() {
         return showInArmor;
     }
@@ -244,7 +277,8 @@ public final class BodyConfig implements IBodyConfig {
     public BodySyncData toSyncData() {
         return new BodySyncData(breastsEnabled, size, petite, offsetX, offsetY, offsetZ,
                 leftUvLayout.copy(), rightUvLayout.copy(), spread, cleavage, independentSides, physicsEnabled,
-                bounceStrength, softness, physicsEngineId.toString(), modelId.toString(), showInArmor);
+                bounceStrength, softness, physicsEngineId.toString(), modelId.toString(),
+                clothModelId.toString(), clothEnabled, innerColor, showInArmor);
     }
 
     /** Builds a validated client config from data received from the server. */
@@ -261,6 +295,10 @@ public final class BodyConfig implements IBodyConfig {
         if (physicsEngineId != null) config.setPhysicsEngineId(physicsEngineId);
         Identifier modelId = Identifier.tryParse(data.modelId());
         if (modelId != null) config.setModelId(modelId);
+        Identifier clothModelId = Identifier.tryParse(data.clothModelId());
+        if (clothModelId != null) config.setClothModelId(clothModelId);
+        config.setClothEnabled(data.clothEnabled());
+        config.setInnerColor(data.innerColor());
         config.setShowInArmor(data.showInArmor());
         return config;
     }

@@ -204,10 +204,10 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .style(CONTROL_STYLE)
                 .animation(HOVER_ANIMATION)
                 .build());
-        y += 28;
+        y += 26;
 
         List<Identifier> modelIds = new ArrayList<>();
-        AnatomicaRegistries.MODELS.keySet().forEach(modelIds::add);
+        AnatomicaRegistries.INNER_MODELS.keySet().forEach(modelIds::add);
 
         addRenderableWidget(FranklyDropdown.<Identifier>builder()
                 .bounds(x, y, SLIDER_WIDTH, 20)
@@ -221,13 +221,46 @@ public final class BodyCustomizationScreen extends BaseFranklyScreen {
                 .style(CONTROL_STYLE)
                 .animation(HOVER_ANIMATION)
                 .build());
-        y += 28;
+        y += 26;
+
+        List<Identifier> clothModelIds = new ArrayList<>();
+        AnatomicaRegistries.CLOTH_MODELS.keySet().forEach(clothModelIds::add);
+
+        addRenderableWidget(FranklyDropdown.<Identifier>builder()
+                .bounds(x, y, SLIDER_WIDTH, 20)
+                .options(clothModelIds)
+                .current(working.clothModelId())
+                .labelMapper(this::clothModelDisplayName)
+                .onSelect(id -> {
+                    working.setClothModelId(id);
+                    pushToServer();
+                })
+                .style(CONTROL_STYLE)
+                .animation(HOVER_ANIMATION)
+                .build());
+        y += 26;
+
+        addRenderableWidget(FranklyCheckbox.builder()
+                .bounds(x, y, 14, 14)
+                .label(Component.translatable("option.anatomica.enable_cloth"))
+                .checked(working.clothEnabled())
+                .onToggle(value -> {
+                    working.setClothEnabled(value);
+                    pushToServer();
+                })
+                .style(CONTROL_STYLE)
+                .build());
 
         addDoneButton();
     }
 
     private Component modelDisplayName(Identifier id) {
-        ModelFactory factory = AnatomicaRegistries.MODELS.get(id).get().value();
+        ModelFactory factory = AnatomicaRegistries.INNER_MODELS.get(id).get().value();
+        return factory != null ? factory.create().displayName() : Component.literal(id.getPath());
+    }
+
+    private Component clothModelDisplayName(Identifier id) {
+        ModelFactory factory = AnatomicaRegistries.CLOTH_MODELS.get(id).get().value();
         return factory != null ? factory.create().displayName() : Component.literal(id.getPath());
     }
 

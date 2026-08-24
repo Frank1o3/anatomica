@@ -17,7 +17,7 @@ public record BodySyncData(
         boolean breastsEnabled, float size, float petite, float offsetX, float offsetY, float offsetZ,
         UVLayout leftUvLayout, UVLayout rightUvLayout, float spread, float cleavage,
         boolean independentSides, boolean physicsEnabled, float bounceStrength, float softness,
-        String physicsEngineId, String modelId, boolean showInArmor) {
+        String physicsEngineId, String modelId, String clothModelId, boolean clothEnabled, int innerColor, boolean showInArmor) {
 
     private static final int MAX_IDENTIFIER_LENGTH = 128;
 
@@ -29,7 +29,8 @@ public record BodySyncData(
         int flags = (data.breastsEnabled ? 1 : 0)
                 | (data.independentSides ? 1 << 1 : 0)
                 | (data.physicsEnabled ? 1 << 2 : 0)
-                | (data.showInArmor ? 1 << 3 : 0);
+                | (data.showInArmor ? 1 << 3 : 0)
+                | (data.clothEnabled ? 1 << 4 : 0);
         buffer.writeByte(flags);
         writeUnit(buffer, data.size);
         writeUnit(buffer, data.petite);
@@ -44,6 +45,8 @@ public record BodySyncData(
         writeUnit(buffer, data.softness);
         buffer.writeUtf(data.physicsEngineId, MAX_IDENTIFIER_LENGTH);
         buffer.writeUtf(data.modelId, MAX_IDENTIFIER_LENGTH);
+        buffer.writeUtf(data.clothModelId, MAX_IDENTIFIER_LENGTH);
+        buffer.writeInt(data.innerColor);
     }
 
     public static BodySyncData decode(RegistryFriendlyByteBuf buffer) {
@@ -61,9 +64,11 @@ public record BodySyncData(
         float softness = readUnit(buffer);
         String physicsEngine = buffer.readUtf(MAX_IDENTIFIER_LENGTH);
         String model = buffer.readUtf(MAX_IDENTIFIER_LENGTH);
+        String clothModel = buffer.readUtf(MAX_IDENTIFIER_LENGTH);
+        int innerColor = buffer.readInt();
         return new BodySyncData((flags & 1) != 0, size, petite, offsetX, offsetY, offsetZ, left, right,
                 spread, cleavage, (flags & (1 << 1)) != 0, (flags & (1 << 2)) != 0, bounce, softness,
-                physicsEngine, model, (flags & (1 << 3)) != 0);
+                physicsEngine, model, clothModel, (flags & (1 << 4)) != 0, innerColor, (flags & (1 << 3)) != 0);
     }
 
     private static void writeUnit(RegistryFriendlyByteBuf buffer, float value) {
@@ -123,6 +128,7 @@ public record BodySyncData(
         tag.putBoolean("independentSides", independentSides); tag.putBoolean("physicsEnabled", physicsEnabled);
         tag.putFloat("bounceStrength", bounceStrength); tag.putFloat("softness", softness);
         tag.putString("physicsEngineId", physicsEngineId); tag.putString("modelId", modelId);
+        tag.putString("clothModelId", clothModelId); tag.putBoolean("clothEnabled", clothEnabled); tag.putInt("innerColor", innerColor);
         tag.putBoolean("showInArmor", showInArmor);
         return tag;
     }
@@ -136,7 +142,11 @@ public record BodySyncData(
                 tag.getBooleanOr("independentSides", false), tag.getBooleanOr("physicsEnabled", true),
                 tag.getFloatOr("bounceStrength", 0.5F), tag.getFloatOr("softness", 0.5F),
                 tag.getStringOr("physicsEngineId", "anatomica:softbody"),
-                tag.getStringOr("modelId", "anatomica:breast"), tag.getBooleanOr("showInArmor", true));
+                tag.getStringOr("modelId", "anatomica:breast"),
+                tag.getStringOr("clothModelId", "anatomica:cloth_basic"),
+                tag.getBooleanOr("clothEnabled", true),
+                tag.getIntOr("innerColor", 0xFFD2A88C),
+                tag.getBooleanOr("showInArmor", true));
     }
 
     private static CompoundTag writeLayout(UVLayout layout) {

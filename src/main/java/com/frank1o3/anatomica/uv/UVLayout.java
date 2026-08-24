@@ -24,6 +24,14 @@ public class UVLayout {
             new UVQuad(20, 21, 24, 26)  // NORTH
     );
 
+    public static final UVLayout DEFAULT_TORSO = new UVLayout(
+            new UVQuad(20, 20, 28, 32), // EAST
+            new UVQuad(20, 20, 28, 32), // WEST
+            new UVQuad(20, 20, 28, 32), // DOWN
+            new UVQuad(20, 20, 28, 32), // UP
+            new UVQuad(20, 20, 28, 32)  // NORTH
+    );
+
     private final EnumMap<UVDirection, @Nullable UVQuad> quads = new EnumMap<>(UVDirection.class);
 
     public UVLayout(Map<UVDirection, @Nullable UVQuad> map) {

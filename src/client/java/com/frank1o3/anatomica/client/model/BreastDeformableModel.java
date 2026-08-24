@@ -25,14 +25,8 @@ import java.util.List;
  * teardrop rather than a hemisphere.
  *
  * <p>
- * The whole surface still uses the front UV rectangle — a non-box shape doesn't
- * get pretend rectangular side faces; the usual front torso texture (including
- * the
- * player's own clothing layer, since this mod renders over whatever the player
- * is
- * wearing) stays continuous over the curved surface. No separate nipple/areola
- * geometry is generated — that detail is left entirely to the skin texture
- * itself.
+ * The surface includes physical nipple apex protrusion geometry at the mound peak,
+ * ensuring three-dimensional definition even under solid flesh-tone rendering passes.
  */
 public final class BreastDeformableModel implements IDeformableModel {
     private static final int SUBDIVISIONS = 24;
@@ -97,6 +91,11 @@ public final class BreastDeformableModel implements IDeformableModel {
                 float depthFactor = roundedFactor * (1f - CONE_MIX) + conicalFactor * CONE_MIX * conicalFactor;
                 float gravity = Mth.clamp((ny + 1f) * 0.5f, 0f, 1f); // 0 bottom → 1 top
                 depthFactor *= Mth.lerp(1.15f, 0.80f, gravity);
+
+                // Nipple apex protrusion at the biased mound peak
+                float nippleDistSq = scaledNx * scaledNx + scaledNy * scaledNy;
+                float nippleFactor = (float) Math.exp(-nippleDistSq * 45.0f) * 0.14f;
+                depthFactor += nippleFactor;
 
                 float z = -SoftbodyGridLayout.DEPTH * depthFactor;
                 Vec3 position = new Vec3(x, y, z);

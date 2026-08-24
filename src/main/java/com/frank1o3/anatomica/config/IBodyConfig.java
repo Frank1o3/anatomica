@@ -69,6 +69,18 @@ public interface IBodyConfig {
 
     void setModelId(Identifier value);
 
+    Identifier clothModelId();
+
+    void setClothModelId(Identifier value);
+
+    boolean clothEnabled();
+
+    void setClothEnabled(boolean value);
+
+    int innerColor();
+
+    void setInnerColor(int value);
+
     boolean showInArmor();
 
     void setShowInArmor(boolean value);

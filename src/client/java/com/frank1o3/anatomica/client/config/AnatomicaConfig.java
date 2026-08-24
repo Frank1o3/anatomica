@@ -5,6 +5,7 @@ import com.frank1o3.anatomica.client.config.keys.BooleanConfigKey;
 import com.frank1o3.anatomica.client.config.keys.FloatConfigKey;
 import com.frank1o3.anatomica.client.config.keys.IdentifierConfigKey;
 import com.frank1o3.anatomica.client.config.keys.UVLayoutConfigKey;
+import com.frank1o3.anatomica.client.config.keys.IntConfigKey;
 import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.franklylib.config.ConfigValueHandlers;
@@ -54,7 +55,14 @@ public final class AnatomicaConfig {
                         () -> AnatomicaRegistries.PHYSICS_ENGINES);
 
         public static final IdentifierConfigKey MODEL_ID = new IdentifierConfigKey("model", Anatomica.id("breast"),
-                        () -> AnatomicaRegistries.MODELS);
+                        () -> AnatomicaRegistries.INNER_MODELS);
+
+        public static final IdentifierConfigKey CLOTH_MODEL_ID = new IdentifierConfigKey("cloth_model", Anatomica.id("cloth_basic"),
+                        () -> AnatomicaRegistries.CLOTH_MODELS);
+
+        public static final IntConfigKey INNER_COLOR = new IntConfigKey("inner_color", 0xFFD2A88C);
+
+        public static final BooleanConfigKey CLOTH_ENABLED = new BooleanConfigKey("cloth_enabled", true);
 
         public static final BooleanConfigKey SHOW_IN_ARMOR = new BooleanConfigKey("show_in_armor", false);
 
@@ -73,6 +81,9 @@ public final class AnatomicaConfig {
                         entry(SOFTNESS, BodyConfig::softness, BodyConfig::setSoftness),
                         entry(PHYSICS_ENGINE_ID, BodyConfig::physicsEngineId, BodyConfig::setPhysicsEngineId),
                         entry(MODEL_ID, BodyConfig::modelId, BodyConfig::setModelId),
+                        entry(CLOTH_MODEL_ID, BodyConfig::clothModelId, BodyConfig::setClothModelId),
+                        entry(CLOTH_ENABLED, BodyConfig::clothEnabled, BodyConfig::setClothEnabled),
+                        entry(INNER_COLOR, BodyConfig::innerColor, BodyConfig::setInnerColor),
                         entry(SHOW_IN_ARMOR, BodyConfig::showInArmor, BodyConfig::setShowInArmor),
                         entry(LEFT_UV_LAYOUT, BodyConfig::leftUvLayout, BodyConfig::setLeftUvLayout),
                         entry(RIGHT_UV_LAYOUT, BodyConfig::rightUvLayout, BodyConfig::setRightUvLayout));

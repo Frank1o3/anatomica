@@ -51,5 +51,8 @@ public interface LivingEntityLike {
     /** Change in body Y-rotation (yaw) since last tick, in degrees. */
     float bodyYawDelta();
 
+    /** Absolute body Y-rotation (yaw) in degrees. */
+    float bodyYaw();
+
     long randomSeed();
 }

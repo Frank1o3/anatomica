@@ -31,23 +31,21 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.frank1o3.anatomica.physics.BodyAttachmentMath;
+
 /**
- * Attaches the player's configured body model, left and right side, to the
- * "body"
- * attachment point, deformed each frame by that player's physics engine(s).
+ * Attaches the player's configured body model (inner breasts and outer cloth garment)
+ * to the "body" attachment point, deformed each frame by that player's physics engine(s).
  *
  * <p>
  * Geometry submission is delegated entirely to FranklyLib's
- * {@link FranklyAttachmentRenderer} — Anatomica no longer keeps its own copy of
- * the
+ * {@link FranklyAttachmentRenderer} — Anatomica no longer keeps its own copy of the
  * attachment-transform/quad-submission code.
  */
 public final class BodyRenderLayer<S extends AvatarRenderState, M extends HumanoidModel<S>> extends RenderLayer<S, M> {
 
-    private static final float SIDE_X_OFFSET = 0.10f;
-    private static final String BODY_TARGET_PART = "body";
-
     private static final Map<Identifier, IDeformableModel> MODEL_INSTANCE_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Identifier, IDeformableModel> CLOTH_MODEL_INSTANCE_CACHE = new ConcurrentHashMap<>();
     private final RenderLayerParent<S, M> context;
 
     public BodyRenderLayer(RenderLayerParent<S, M> parent) {
@@ -58,6 +56,7 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
     /** Invalidates resource-dependent model instances after a resource reload. */
     public static void clearModelCache() {
         MODEL_INSTANCE_CACHE.clear();
+        CLOTH_MODEL_INSTANCE_CACHE.clear();
     }
 
     private @Nullable RenderType resolveBodyRenderType(S state) {
@@ -103,45 +102,45 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
         UVLayout rightLayout = config.independentSides() ? config.rightUvLayout() : config.leftUvLayout();
         float partialTick = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);
 
+        // Inner realistic layer (solid flesh tone fill)
         renderSide(poseStack, renderQueue, renderState, packedLight, model, leftLayout,
-                physics.leftEngine(), buildAttachmentPoint(config, -1), renderType, partialTick);
+                physics.leftEngine(), BodyAttachmentMath.forBreastSide(config, -1), renderType, config.innerColor(), partialTick);
         renderSide(poseStack, renderQueue, renderState, packedLight, model, rightLayout,
-                physics.rightEngine(), buildAttachmentPoint(config, 1), renderType, partialTick);
+                physics.rightEngine(), BodyAttachmentMath.forBreastSide(config, 1), renderType, config.innerColor(), partialTick);
+
+        // Outer cloth layer (samples player torso texture region)
+        if (config.clothEnabled()) {
+            IDeformableModel clothModel = resolveClothModel(config.clothModelId());
+            if (clothModel != null && physics.clothEngine() != null) {
+                FranklyAttachmentRenderer.render(
+                        poseStack, renderQueue, renderState, getParentModel(),
+                        BodyAttachmentMath.forCloth(config),
+                        ModelMeshCache.get(clothModel, UVLayout.DEFAULT_TORSO),
+                        new BoundMeshDeformer(clothModel, physics.clothEngine()),
+                        renderType, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, partialTick);
+            }
+        }
     }
 
     private void renderSide(PoseStack poseStack, SubmitNodeCollector renderQueue, S renderState,
             int packedLight, IDeformableModel model, UVLayout layout, IPhysicsEngine engine,
-            AttachmentPoint attachment, RenderType renderType, float partialTick) {
+            AttachmentPoint attachment, RenderType renderType, int color, float partialTick) {
         FranklyAttachmentRenderer.render(
                 poseStack, renderQueue, renderState, getParentModel(), attachment,
                 ModelMeshCache.get(model, layout), new BoundMeshDeformer(model, engine),
-                renderType, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF, partialTick);
-    }
-
-    private static final float BASE_Y_OFFSET = 0.20f;
-    private static final float BASE_Z_OFFSET = -0.125f;
-
-    private AttachmentPoint buildAttachmentPoint(IBodyConfig config, int side) {
-        // In Minecraft model coordinates: +X is character's Left, -X is character's
-        // Right.
-        // side = -1 is Left breast -> +X. side = 1 is Right breast -> -X.
-        float sideSign = -Math.signum(side);
-        Vec3 offset = new Vec3(
-                config.offsetX() + sideSign * (SIDE_X_OFFSET + config.spread()),
-                BASE_Y_OFFSET + config.offsetY(),
-                BASE_Z_OFFSET - config.offsetZ());
-        float scale = 0.5f + config.size();
-        // Cleavage is a presentation setting: rotate each breast away from the
-        // centre of the chest around its anchored back layer. It deliberately
-        // does not enter the physics simulation.
-        float outwardAngle = Math.min(config.cleavage() * 100f, 10f) * Mth.DEG_TO_RAD;
-        Vec3 rotation = new Vec3(0f, side * outwardAngle, 0f);
-        return new AttachmentPoint(BODY_TARGET_PART, offset, rotation, scale);
+                renderType, packedLight, OverlayTexture.NO_OVERLAY, color, partialTick);
     }
 
     private IDeformableModel resolveModel(Identifier modelId) {
         return MODEL_INSTANCE_CACHE.computeIfAbsent(modelId, id -> {
-            ModelFactory factory = AnatomicaRegistries.MODELS.get(id).get().value();
+            ModelFactory factory = AnatomicaRegistries.INNER_MODELS.get(id).get().value();
+            return factory != null ? factory.create() : null;
+        });
+    }
+
+    private IDeformableModel resolveClothModel(Identifier modelId) {
+        return CLOTH_MODEL_INSTANCE_CACHE.computeIfAbsent(modelId, id -> {
+            ModelFactory factory = AnatomicaRegistries.CLOTH_MODELS.get(id).get().value();
             return factory != null ? factory.create() : null;
         });
     }

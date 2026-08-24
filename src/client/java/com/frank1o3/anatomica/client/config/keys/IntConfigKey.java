@@ -9,6 +9,10 @@ public class IntConfigKey extends BodyConfigKey<Integer> {
     private final int min;
     private final int max;
 
+    public IntConfigKey(String id, int defaultValue) {
+        this(id, defaultValue, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    }
+
     public IntConfigKey(String id, int defaultValue, int min, int max) {
         super(id, defaultValue);
         this.min = min;

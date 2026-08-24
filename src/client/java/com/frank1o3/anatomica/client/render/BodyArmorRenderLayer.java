@@ -31,15 +31,14 @@ import net.minecraft.world.item.component.DyedItemColor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.frank1o3.anatomica.physics.BodyAttachmentMath;
+
 /** Renders the configured body mesh with the worn chestplate's equipment texture. */
 public final class BodyArmorRenderLayer<S extends AvatarRenderState, M extends HumanoidModel<S>>
         extends RenderLayer<S, M> {
 
-    private static final float SIDE_X_OFFSET = 0.10f;
-    private static final float BASE_Y_OFFSET = 0.20f;
-    private static final float BASE_Z_OFFSET = -0.125f;
-    private static final String BODY_TARGET_PART = "body";
     private static final Map<Identifier, IDeformableModel> MODEL_INSTANCE_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Identifier, IDeformableModel> CLOTH_MODEL_INSTANCE_CACHE = new ConcurrentHashMap<>();
 
     private final EquipmentAssetManager equipmentAssets;
 
@@ -51,6 +50,7 @@ public final class BodyArmorRenderLayer<S extends AvatarRenderState, M extends H
     /** Invalidates resource-dependent model instances after a resource reload. */
     public static void clearModelCache() {
         MODEL_INSTANCE_CACHE.clear();
+        CLOTH_MODEL_INSTANCE_CACHE.clear();
     }
 
     @Override
@@ -95,13 +95,38 @@ public final class BodyArmorRenderLayer<S extends AvatarRenderState, M extends H
                 layers, dyedColor, glint, partialTick);
         renderSide(poseStack, renderQueue, state, packedLight, config, model, physics.rightEngine(), 1,
                 layers, dyedColor, glint, partialTick);
+
+        // Cloth garment layer rendered with chestplate equipment texture
+        if (config.clothEnabled()) {
+            IDeformableModel clothModel = resolveClothModel(config.clothModelId());
+            if (clothModel != null && physics.clothEngine() != null) {
+                AttachmentPoint clothAttachment = BodyAttachmentMath.forCloth(config);
+                for (EquipmentClientInfo.Layer layer : layers) {
+                    int color = colorForLayer(layer, dyedColor);
+                    if (color == 0) {
+                        continue;
+                    }
+                    var renderType = RenderTypes.armorCutoutNoCull(layer.getTextureLocation(EquipmentClientInfo.LayerType.HUMANOID));
+                    FranklyAttachmentRenderer.render(poseStack, renderQueue, state, getParentModel(), clothAttachment,
+                            ModelMeshCache.get(clothModel, UVLayout.DEFAULT_TORSO),
+                            new BoundMeshDeformer(clothModel, physics.clothEngine()), renderType,
+                            packedLight, OverlayTexture.NO_OVERLAY, ARGB.opaque(color), partialTick);
+                    if (glint) {
+                        FranklyAttachmentRenderer.render(poseStack, renderQueue, state, getParentModel(), clothAttachment,
+                                ModelMeshCache.get(clothModel, UVLayout.DEFAULT_TORSO),
+                                new BoundMeshDeformer(clothModel, physics.clothEngine()),
+                                RenderTypes.armorEntityGlint(), packedLight, OverlayTexture.NO_OVERLAY, -1, partialTick);
+                    }
+                }
+            }
+        }
     }
 
     private void renderSide(PoseStack poseStack, SubmitNodeCollector renderQueue, S state, int packedLight,
             IBodyConfig config, IDeformableModel model, com.frank1o3.anatomica.physics.IPhysicsEngine engine,
             int side, java.util.List<EquipmentClientInfo.Layer> layers, int dyedColor, boolean glint,
             float partialTick) {
-        AttachmentPoint attachment = buildAttachmentPoint(config, side);
+        AttachmentPoint attachment = BodyAttachmentMath.forBreastSide(config, side);
         for (EquipmentClientInfo.Layer layer : layers) {
             int color = colorForLayer(layer, dyedColor);
             if (color == 0) {
@@ -121,15 +146,6 @@ public final class BodyArmorRenderLayer<S extends AvatarRenderState, M extends H
         }
     }
 
-    private static AttachmentPoint buildAttachmentPoint(IBodyConfig config, int side) {
-        float sideSign = -Math.signum(side);
-        Vec3 offset = new Vec3(config.offsetX() + sideSign * (SIDE_X_OFFSET + config.spread()),
-                BASE_Y_OFFSET + config.offsetY(), BASE_Z_OFFSET - config.offsetZ());
-        float outwardAngle = Math.min(config.cleavage() * 100f, 10f) * Mth.DEG_TO_RAD;
-        return new AttachmentPoint(BODY_TARGET_PART, offset, new Vec3(0f, side * outwardAngle, 0f),
-                0.5f + config.size());
-    }
-
     private static int colorForLayer(EquipmentClientInfo.Layer layer, int dyedColor) {
         return layer.dyeable()
                 .map(dyeable -> dyedColor != 0 ? dyedColor : dyeable.colorWhenUndyed().orElse(0))
@@ -138,7 +154,14 @@ public final class BodyArmorRenderLayer<S extends AvatarRenderState, M extends H
 
     private static IDeformableModel resolveModel(Identifier modelId) {
         return MODEL_INSTANCE_CACHE.computeIfAbsent(modelId, id -> {
-            ModelFactory factory = AnatomicaRegistries.MODELS.get(id).get().value();
+            ModelFactory factory = AnatomicaRegistries.INNER_MODELS.get(id).get().value();
+            return factory != null ? factory.create() : null;
+        });
+    }
+
+    private static IDeformableModel resolveClothModel(Identifier modelId) {
+        return CLOTH_MODEL_INSTANCE_CACHE.computeIfAbsent(modelId, id -> {
+            ModelFactory factory = AnatomicaRegistries.CLOTH_MODELS.get(id).get().value();
             return factory != null ? factory.create() : null;
         });
     }

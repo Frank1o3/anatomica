@@ -87,6 +87,7 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
      * The last entity position seen by this engine, for fixed-tick displacement.
      */
     private Vec3 previousEntityPosition;
+    private Vec3 previousMotion = Vec3.ZERO;
     /** Vertical gait offset applied to the chest-anchored node layer. */
     private float walkBaseOffsetY;
     private boolean wasCrouching;
@@ -142,7 +143,9 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
             velX[i] = velY[i] = velZ[i] = 0f;
         }
         previousEntityPosition = null;
+        previousMotion = Vec3.ZERO;
         walkBaseOffsetY = 0f;
+        // Zeroing wasCrouching and wasSleeping is safe because on re-enable, if the entity is already crouching/sleeping, (state != false) fires the initial pose kick correctly; if transitions occurred while disabled, no spurious transition kicks were queued.
         wasCrouching = false;
         wasSleeping = false;
     }
@@ -203,8 +206,18 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
         Vec3 motion = currentPosition.subtract(previousEntityPosition);
         previousEntityPosition = currentPosition;
 
-        impY += -motion.y() * bounceIntensity;
-        impZ += -motion.z() * bounceIntensity * 2.0f;
+        Vec3 accel = motion.subtract(previousMotion);
+        previousMotion = motion;
+
+        float yawRad = -entity.bodyYaw() * Mth.DEG_TO_RAD;
+        float cos = Mth.cos(yawRad);
+        float sin = Mth.sin(yawRad);
+        float localLateral = accel.x() * cos - accel.z() * sin;
+        float localForward = accel.x() * sin + accel.z() * cos;
+
+        impX += -localLateral * bounceIntensity;
+        impY += -accel.y() * bounceIntensity;
+        impZ += -localForward * bounceIntensity * 2.0f;
 
         // Constant resting sag, scaled by the configured size, so the mesh doesn't
         // read as perfectly rigid even when the player stands still.
@@ -230,7 +243,7 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
             wasCrouching = crouching;
         }
         if (sleeping != wasSleeping) {
-            impY = bounceIntensity;
+            impY += bounceIntensity;
             wasSleeping = sleeping;
         }
 

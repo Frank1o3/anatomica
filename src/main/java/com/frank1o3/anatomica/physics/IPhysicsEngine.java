@@ -74,6 +74,17 @@ public interface IPhysicsEngine {
 
     /**
      * Applies an instantaneous impulse to the node(s) nearest {@code localPoint}.
+     *
+     * <p>Contract:
+     * <ul>
+     * <li>{@code localPoint} is in the engine's local/model space (the same coordinate space as node rest positions).</li>
+     * <li>{@code force} is applied as an instantaneous velocity delta with a Gaussian falloff around the nearest nodes
+     *     (see {@code SoftbodyPhysicsEngine.applyImpulse} for the falloff constant).</li>
+     * <li>This caller contract is used for softbody coupling and inter-instance forces such as cloth interaction.</li>
+     * </ul>
+     *
+     * @param localPoint the target position in local/model space
+     * @param force the force vector to apply as an instantaneous velocity delta
      */
     void applyImpulse(Vec3 localPoint, Vec3 force);
 }
