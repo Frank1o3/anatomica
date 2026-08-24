@@ -145,7 +145,10 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
         previousEntityPosition = null;
         previousMotion = Vec3.ZERO;
         walkBaseOffsetY = 0f;
-        // Zeroing wasCrouching and wasSleeping is safe because on re-enable, if the entity is already crouching/sleeping, (state != false) fires the initial pose kick correctly; if transitions occurred while disabled, no spurious transition kicks were queued.
+        // Zeroing wasCrouching and wasSleeping is safe because on re-enable, if the
+        // entity is already crouching/sleeping, (state != false) fires the initial pose
+        // kick correctly; if transitions occurred while disabled, no spurious
+        // transition kicks were queued.
         wasCrouching = false;
         wasSleeping = false;
     }
@@ -270,7 +273,6 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
             }
             // Front nodes (higher z) respond more to bounce; back-adjacent nodes less.
             float zFactor = layout.restPositions()[i].z() / SoftbodyGridLayout.PHYSICS_DEPTH;
-
             velX[i] += impX * zFactor;
             velY[i] += impY * zFactor + gravity;
             velZ[i] += impZ * zFactor;

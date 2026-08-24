@@ -4,7 +4,6 @@ import com.frank1o3.anatomica.config.IBodyConfig;
 import com.frank1o3.anatomica.physics.IPhysicsEngine;
 import com.frank1o3.anatomica.physics.LivingEntityLike;
 import com.frank1o3.anatomica.physics.PhysicsEngineFactory;
-import com.frank1o3.anatomica.client.config.BodyConfig;
 import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.franklylib.Vec3;
 

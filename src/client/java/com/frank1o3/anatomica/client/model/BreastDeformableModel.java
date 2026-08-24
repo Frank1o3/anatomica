@@ -1,17 +1,18 @@
 package com.frank1o3.anatomica.client.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.frank1o3.anatomica.Anatomica;
 import com.frank1o3.anatomica.client.physics.SoftbodyGridLayout;
 import com.frank1o3.anatomica.model.IDeformableModel;
 import com.frank1o3.anatomica.model.ModelVertex;
 import com.frank1o3.anatomica.uv.UVDirection;
 import com.frank1o3.franklylib.Vec3;
+
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A smooth, chest-anchored breast profile for the soft-body engine.
@@ -25,8 +26,10 @@ import java.util.List;
  * teardrop rather than a hemisphere.
  *
  * <p>
- * The surface includes physical nipple apex protrusion geometry at the mound peak,
- * ensuring three-dimensional definition even under solid flesh-tone rendering passes.
+ * The surface includes physical nipple apex protrusion geometry at the mound
+ * peak,
+ * ensuring three-dimensional definition even under solid flesh-tone rendering
+ * passes.
  */
 public final class BreastDeformableModel implements IDeformableModel {
     private static final int SUBDIVISIONS = 24;
@@ -37,6 +40,7 @@ public final class BreastDeformableModel implements IDeformableModel {
      * How far below dead-center (in normalized [-1,1] space) the mound's peak sits.
      */
     private static final float VERTICAL_BIAS = 0.25f;
+
     /**
      * Falloff reach above the biased center. Larger = the surface stays projected
      * further before going flush with the chest (fuller); smaller = it tapers off
@@ -57,6 +61,11 @@ public final class BreastDeformableModel implements IDeformableModel {
                                                          // wider/side-set
     private static final float CONE_MIX = 0.25f; // 0 = fully rounded dome, 1 = fully tapered/conical profile
 
+    private static final float NIPPLE_RADIUS = 0.018f;
+    private static final int NIPPLE_RINGS = 6; // rings from apex to base
+    private static final int NIPPLE_SEGMENTS = 10; // segments around
+    private static final int NIPPLE_INFLUENCES_PER_VERTEX = 4;
+
     private final ModelVertex[] vertices;
     private final int[] indices;
 
@@ -73,39 +82,13 @@ public final class BreastDeformableModel implements IDeformableModel {
             for (int column = 0; column <= SUBDIVISIONS; column++) {
                 float u = (float) column / SUBDIVISIONS;
                 float x = -SoftbodyGridLayout.HALF_WIDTH + u * SoftbodyGridLayout.HALF_WIDTH * 2f;
-
-                float nx = x / SoftbodyGridLayout.HALF_WIDTH;
-                float ny = y / SoftbodyGridLayout.HALF_HEIGHT;
-
-                float biasedNy = ny - VERTICAL_BIAS;
-                float reach = biasedNy >= 0f ? UPPER_REACH : LOWER_REACH;
-                float scaledNy = biasedNy / reach;
-
-                float scaledNx = nx / HORIZONTAL_REACH;
-                float radialSquared = Math.min(1f,
-                        scaledNx * scaledNx * 1.1f + // slightly wider horizontally
-                                scaledNy * scaledNy * 0.9f // slightly compressed vertically
-                );
-                float roundedFactor = smoothFalloff(1f - radialSquared);
-                float conicalFactor = Mth.clamp(1f - (float) Math.sqrt(radialSquared), 0f, 1f);
-                float depthFactor = roundedFactor * (1f - CONE_MIX) + conicalFactor * CONE_MIX * conicalFactor;
-                float gravity = Mth.clamp((ny + 1f) * 0.5f, 0f, 1f); // 0 bottom → 1 top
-                depthFactor *= Mth.lerp(1.15f, 0.80f, gravity);
-
-                // Nipple apex protrusion at the biased mound peak
-                float nippleDistSq = scaledNx * scaledNx + scaledNy * scaledNy;
-                float nippleFactor = (float) Math.exp(-nippleDistSq * 45.0f) * 0.14f;
-                depthFactor += nippleFactor;
-
-                float z = -SoftbodyGridLayout.DEPTH * depthFactor;
-                Vec3 position = new Vec3(x, y, z);
+                Vec3 position = breastSurfacePosition(x, y);
 
                 // v drives the mesh's actual Y position above and must stay as-is for
                 // geometry. The texture V coordinate is a separate concern — inverted
                 // here so the neck/collarbone area of the UV quad lands at the top of
                 // the mesh (near the attachment point) instead of the bottom.
                 float textureV = 1f - v;
-
                 NodeWeighting.Result weighting = NodeWeighting.nearest(position, nodeRest,
                         INFLUENCES_PER_VERTEX);
                 vertexList.add(new ModelVertex(position, u, textureV, UVDirection.NORTH,
@@ -131,6 +114,7 @@ public final class BreastDeformableModel implements IDeformableModel {
             }
         }
 
+        addNippleCap(vertexList, indexList, nodeRest);
         vertices = vertexList.toArray(new ModelVertex[0]);
         indices = indexList.stream().mapToInt(Integer::intValue).toArray();
     }
@@ -144,6 +128,97 @@ public final class BreastDeformableModel implements IDeformableModel {
         // the boundary is crossed at a steeper angle. This trades a slightly
         // rounder peak for a boundary that closes cleanly.
         return t * t * (3f - 2f * t);
+    }
+
+    /**
+     * Grafts a small hemisphere onto the breast dome's apex as its own dense
+     * sub-mesh, rather than perturbing the shared breast grid. The grid is too
+     * coarse to represent curvature it doesn't have vertices for — no amount of
+     * tuning a perturbation on it produces a round bump, only a faceted one.
+     *
+     * <p>
+     * Uses the same theta/phi parametrization as {@code MeshBuilder.uvSphere},
+     * just capped at the equator (theta in [0, PI/2]) instead of generating a
+     * full sphere and discarding half of it.
+     */
+    private static void addNippleCap(List<ModelVertex> vertexList, List<Integer> indexList, Vec3[] nodeRest) {
+        // Same biased-apex math as the main loop, evaluated at dead center (nx=ny=0
+        // in the biased frame) to find where the cap should sit.
+        Vec3 apex = breastSurfacePosition(
+                0f,
+                VERTICAL_BIAS * SoftbodyGridLayout.HALF_HEIGHT);
+
+        int base = vertexList.size();
+        int rowWidth = NIPPLE_SEGMENTS + 1;
+
+        for (int ring = 0; ring <= NIPPLE_RINGS; ring++) {
+            float theta = (float) (Math.PI / 2.0) * ring / NIPPLE_RINGS; // 0 (tip) .. PI/2 (base)
+            float sinTheta = (float) Math.sin(theta);
+            float cosTheta = (float) Math.cos(theta);
+            for (int segment = 0; segment <= NIPPLE_SEGMENTS; segment++) {
+                float phi = (float) (2.0 * Math.PI * segment / NIPPLE_SEGMENTS);
+                // Local sphere space, then rotated -90 deg about X so the pole
+                // (local +Y) points along -Z — outward, matching the breast
+                // surface's own outward direction.
+                float worldX = NIPPLE_RADIUS * (float) Math.sin(phi) * sinTheta;
+                float worldY = NIPPLE_RADIUS * (float) Math.cos(phi) * sinTheta;
+                float worldZ = -NIPPLE_RADIUS * cosTheta;
+
+                Vec3 position = apex.add(new Vec3(worldX, worldY, worldZ));
+                NodeWeighting.Result w = NodeWeighting.nearest(position, nodeRest, NIPPLE_INFLUENCES_PER_VERTEX);
+                // UV is a placeholder — this cap is a solid-fill target, not a
+                // texture-sampled one; revisit once per-vertex nipple color lands.
+                vertexList.add(new ModelVertex(position, 0.5f, 0.5f, UVDirection.NORTH, w.influences(), w.weights()));
+            }
+        }
+
+        // Same reversed winding as the main dome loop, for the same reason: this
+        // surface also faces outward toward -Z.
+        for (int ring = 0; ring < NIPPLE_RINGS; ring++) {
+            for (int segment = 0; segment < NIPPLE_SEGMENTS; segment++) {
+                int a = base + ring * rowWidth + segment;
+                int b = a + 1;
+                int c = a + rowWidth;
+                int d = c + 1;
+                indexList.add(a);
+                indexList.add(c);
+                indexList.add(b);
+                indexList.add(b);
+                indexList.add(c);
+                indexList.add(d);
+            }
+        }
+    }
+
+    private static Vec3 breastSurfacePosition(float x, float y) {
+        float nx = x / SoftbodyGridLayout.HALF_WIDTH;
+        float ny = y / SoftbodyGridLayout.HALF_HEIGHT;
+
+        float biasedNy = ny - VERTICAL_BIAS;
+        float reach = biasedNy >= 0f ? UPPER_REACH : LOWER_REACH;
+        float scaledNy = biasedNy / reach;
+
+        float scaledNx = nx / HORIZONTAL_REACH;
+
+        float radialSquared = Math.min(1f,
+                scaledNx * scaledNx * 1.1f +
+                        scaledNy * scaledNy * 0.9f);
+
+        float roundedFactor = smoothFalloff(1f - radialSquared);
+        float conicalFactor = Mth.clamp(
+                1f - (float) Math.sqrt(radialSquared),
+                0f, 1f);
+
+        float depthFactor = roundedFactor * (1f - CONE_MIX) +
+                conicalFactor * CONE_MIX * conicalFactor;
+
+        float gravity = Mth.clamp((ny + 1f) * 0.5f, 0f, 1f);
+
+        depthFactor *= Mth.lerp(1.15f, 0.80f, gravity);
+
+        float z = -SoftbodyGridLayout.DEPTH * depthFactor;
+
+        return new Vec3(x, y, z);
     }
 
     @Override

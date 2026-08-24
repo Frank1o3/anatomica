@@ -26,8 +26,8 @@ public final class ClothDeformableModel implements IDeformableModel {
     private static final int INFLUENCES_PER_VERTEX = 4;
     private static final Identifier ID = Anatomica.id("cloth_basic");
 
-    private static final float WIDTH_SCALE = 2.15f;
-    private static final float HEIGHT_SCALE = 1.10f;
+    private static final float WIDTH_SCALE = 1.95f;
+    private static final float HEIGHT_SCALE = 1.22f;
     private static final float DEPTH_SCALE = 1.05f;
 
     private final ModelVertex[] vertices;

@@ -5,6 +5,7 @@ import com.frank1o3.anatomica.networking.BodySyncData;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.franklylib.config.ConfigEntry;
 import com.frank1o3.franklylib.config.Range;
+
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 
@@ -17,31 +18,40 @@ import net.minecraft.resources.Identifier;
 public final class BodyConfig implements IBodyConfig {
     @ConfigEntry(id = "breasts_enabled")
     private boolean breastsEnabled = AnatomicaConfig.BREASTS_ENABLED.defaultValue();
-    @ConfigEntry @Range(min = 0.0, max = 1.0)
+    @ConfigEntry
+    @Range(min = 0.0, max = 1.0)
     private float size = AnatomicaConfig.SIZE.defaultValue();
-    @ConfigEntry @Range(min = 0.0, max = 1.0)
+    @ConfigEntry
+    @Range(min = 0.0, max = 10.0)
     private float petite = AnatomicaConfig.PETITE.defaultValue();
-    @ConfigEntry(id = "offset_x") @Range(min = -0.5, max = 0.5)
+    @ConfigEntry(id = "offset_x")
+    @Range(min = -0.5, max = 0.5)
     private float offsetX = AnatomicaConfig.OFFSET_X.defaultValue();
-    @ConfigEntry(id = "offset_y") @Range(min = -0.5, max = 0.5)
+    @ConfigEntry(id = "offset_y")
+    @Range(min = -0.5, max = 0.5)
     private float offsetY = AnatomicaConfig.OFFSET_Y.defaultValue();
-    @ConfigEntry(id = "offset_z") @Range(min = -0.5, max = 0.5)
+    @ConfigEntry(id = "offset_z")
+    @Range(min = -0.5, max = 0.5)
     private float offsetZ = AnatomicaConfig.OFFSET_Z.defaultValue();
     @ConfigEntry(id = "left_uv_layout")
     private UVLayout leftUvLayout = AnatomicaConfig.LEFT_UV_LAYOUT.defaultValue();
     @ConfigEntry(id = "right_uv_layout")
     private UVLayout rightUvLayout = AnatomicaConfig.RIGHT_UV_LAYOUT.defaultValue();
-    @ConfigEntry @Range(min = 0.0, max = 0.1)
+    @ConfigEntry
+    @Range(min = 0.0, max = 0.1)
     private float spread = AnatomicaConfig.SPREAD.defaultValue();
-    @ConfigEntry @Range(min = 0.0, max = 0.1)
+    @ConfigEntry
+    @Range(min = 0.0, max = 0.1)
     private float cleavage = AnatomicaConfig.CLEAVAGE.defaultValue();
     @ConfigEntry(id = "independent_sides")
     private boolean independentSides = AnatomicaConfig.INDEPENDENT_SIDES.defaultValue();
     @ConfigEntry(id = "physics_enabled")
     private boolean physicsEnabled = AnatomicaConfig.PHYSICS_ENABLED.defaultValue();
-    @ConfigEntry(id = "bounce_strength") @Range(min = 0.0, max = 1.0)
+    @ConfigEntry(id = "bounce_strength")
+    @Range(min = 0.0, max = 1.0)
     private float bounceStrength = AnatomicaConfig.BOUNCE_STRENGTH.defaultValue();
-    @ConfigEntry @Range(min = 0.0, max = 1.0)
+    @ConfigEntry
+    @Range(min = 0.0, max = 1.0)
     private float softness = AnatomicaConfig.SOFTNESS.defaultValue();
     @ConfigEntry(id = "physics_engine")
     private Identifier physicsEngineId = AnatomicaConfig.PHYSICS_ENGINE_ID.defaultValue();
@@ -251,7 +261,9 @@ public final class BodyConfig implements IBodyConfig {
     // Serialization
     // -------------------------------------------------------------------
 
-    /** Serializes the legacy NBT profile format for backwards-compatible migration. */
+    /**
+     * Serializes the legacy NBT profile format for backwards-compatible migration.
+     */
     public CompoundTag toNbt() {
         CompoundTag tag = new CompoundTag();
         for (AnatomicaConfig.RegisteredKey<?> entry : AnatomicaConfig.ENTRIES) {
@@ -285,18 +297,28 @@ public final class BodyConfig implements IBodyConfig {
     public static BodyConfig fromSyncData(BodySyncData data) {
         BodyConfig config = new BodyConfig();
         config.setBreastsEnabled(data.breastsEnabled());
-        config.setSize(data.size()); config.setPetite(data.petite());
-        config.setOffsetX(data.offsetX()); config.setOffsetY(data.offsetY()); config.setOffsetZ(data.offsetZ());
-        config.setLeftUvLayout(data.leftUvLayout()); config.setRightUvLayout(data.rightUvLayout());
-        config.setSpread(data.spread()); config.setCleavage(data.cleavage());
-        config.setIndependentSides(data.independentSides()); config.setPhysicsEnabled(data.physicsEnabled());
-        config.setBounceStrength(data.bounceStrength()); config.setSoftness(data.softness());
+        config.setSize(data.size());
+        config.setPetite(data.petite());
+        config.setOffsetX(data.offsetX());
+        config.setOffsetY(data.offsetY());
+        config.setOffsetZ(data.offsetZ());
+        config.setLeftUvLayout(data.leftUvLayout());
+        config.setRightUvLayout(data.rightUvLayout());
+        config.setSpread(data.spread());
+        config.setCleavage(data.cleavage());
+        config.setIndependentSides(data.independentSides());
+        config.setPhysicsEnabled(data.physicsEnabled());
+        config.setBounceStrength(data.bounceStrength());
+        config.setSoftness(data.softness());
         Identifier physicsEngineId = Identifier.tryParse(data.physicsEngineId());
-        if (physicsEngineId != null) config.setPhysicsEngineId(physicsEngineId);
+        if (physicsEngineId != null)
+            config.setPhysicsEngineId(physicsEngineId);
         Identifier modelId = Identifier.tryParse(data.modelId());
-        if (modelId != null) config.setModelId(modelId);
+        if (modelId != null)
+            config.setModelId(modelId);
         Identifier clothModelId = Identifier.tryParse(data.clothModelId());
-        if (clothModelId != null) config.setClothModelId(clothModelId);
+        if (clothModelId != null)
+            config.setClothModelId(clothModelId);
         config.setClothEnabled(data.clothEnabled());
         config.setInnerColor(data.innerColor());
         config.setShowInArmor(data.showInArmor());

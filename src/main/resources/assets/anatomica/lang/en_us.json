@@ -28,10 +28,12 @@
     "option.anatomica.face.north": "Front",
     "option.anatomica.face.down": "Bottom",
     "option.anatomica.face.up": "Top",
+    "option.anatomica.enable_cloth": "Enable Cloth Layer",
+    "physics.anatomica.softbody": "Softbody Physics",
+    "physics.anatomica.advanced_softbody": "Advanced Softbody Physics",
     "model.anatomica.wedge": "Wedge Model",
     "model.anatomica.box": "Box Model",
     "model.anatomica.rounded": "Rounded Model",
     "model.anatomica.breast": "Breast Model",
-    "model.anatomica.cloth_basic": "Basic Cloth Garment",
-    "option.anatomica.enable_cloth": "Enable Cloth Layer"
+    "model.anatomica.cloth_basic": "Basic Cloth Garment"
 }

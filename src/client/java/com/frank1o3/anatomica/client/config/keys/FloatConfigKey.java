@@ -1,6 +1,7 @@
 package com.frank1o3.anatomica.client.config.keys;
 
 import com.frank1o3.anatomica.client.config.BodyConfigKey;
+
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 

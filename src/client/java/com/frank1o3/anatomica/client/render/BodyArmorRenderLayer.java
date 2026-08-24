@@ -6,7 +6,6 @@ import com.frank1o3.anatomica.model.IDeformableModel;
 import com.frank1o3.anatomica.model.ModelFactory;
 import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.uv.UVLayout;
-import com.frank1o3.franklylib.Vec3;
 import com.frank1o3.franklylib.client.render.AttachmentPoint;
 import com.frank1o3.franklylib.client.render.FranklyAttachmentRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -23,7 +22,6 @@ import net.minecraft.client.resources.model.EquipmentClientInfo;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
@@ -33,7 +31,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.frank1o3.anatomica.physics.BodyAttachmentMath;
 
-/** Renders the configured body mesh with the worn chestplate's equipment texture. */
+/**
+ * Renders the configured body mesh with the worn chestplate's equipment
+ * texture.
+ */
 public final class BodyArmorRenderLayer<S extends AvatarRenderState, M extends HumanoidModel<S>>
         extends RenderLayer<S, M> {
 
@@ -106,16 +107,19 @@ public final class BodyArmorRenderLayer<S extends AvatarRenderState, M extends H
                     if (color == 0) {
                         continue;
                     }
-                    var renderType = RenderTypes.armorCutoutNoCull(layer.getTextureLocation(EquipmentClientInfo.LayerType.HUMANOID));
+                    var renderType = RenderTypes
+                            .armorCutoutNoCull(layer.getTextureLocation(EquipmentClientInfo.LayerType.HUMANOID));
                     FranklyAttachmentRenderer.render(poseStack, renderQueue, state, getParentModel(), clothAttachment,
                             ModelMeshCache.get(clothModel, UVLayout.DEFAULT_TORSO),
                             new BoundMeshDeformer(clothModel, physics.clothEngine()), renderType,
                             packedLight, OverlayTexture.NO_OVERLAY, ARGB.opaque(color), partialTick);
                     if (glint) {
-                        FranklyAttachmentRenderer.render(poseStack, renderQueue, state, getParentModel(), clothAttachment,
+                        FranklyAttachmentRenderer.render(poseStack, renderQueue, state, getParentModel(),
+                                clothAttachment,
                                 ModelMeshCache.get(clothModel, UVLayout.DEFAULT_TORSO),
                                 new BoundMeshDeformer(clothModel, physics.clothEngine()),
-                                RenderTypes.armorEntityGlint(), packedLight, OverlayTexture.NO_OVERLAY, -1, partialTick);
+                                RenderTypes.armorEntityGlint(), packedLight, OverlayTexture.NO_OVERLAY, -1,
+                                partialTick);
                     }
                 }
             }
@@ -132,7 +136,8 @@ public final class BodyArmorRenderLayer<S extends AvatarRenderState, M extends H
             if (color == 0) {
                 continue;
             }
-            var renderType = RenderTypes.armorCutoutNoCull(layer.getTextureLocation(EquipmentClientInfo.LayerType.HUMANOID));
+            var renderType = RenderTypes
+                    .armorCutoutNoCull(layer.getTextureLocation(EquipmentClientInfo.LayerType.HUMANOID));
             FranklyAttachmentRenderer.render(poseStack, renderQueue, state, getParentModel(), attachment,
                     ModelMeshCache.get(model, side < 0 ? UVLayout.DEFAULT_LEFT : UVLayout.DEFAULT_RIGHT),
                     new BoundMeshDeformer(model, engine), renderType,

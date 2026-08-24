@@ -8,7 +8,6 @@ import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.client.data.EntityBodyData;
 import com.frank1o3.anatomica.config.IBodyConfig;
 import com.frank1o3.anatomica.uv.UVLayout;
-import com.frank1o3.franklylib.Vec3;
 import com.frank1o3.franklylib.client.render.AttachmentPoint;
 import com.frank1o3.franklylib.client.render.FranklyAttachmentRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -23,7 +22,6 @@ import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
 
 import java.util.Map;
 import java.util.UUID;
@@ -34,12 +32,15 @@ import org.jetbrains.annotations.Nullable;
 import com.frank1o3.anatomica.physics.BodyAttachmentMath;
 
 /**
- * Attaches the player's configured body model (inner breasts and outer cloth garment)
- * to the "body" attachment point, deformed each frame by that player's physics engine(s).
+ * Attaches the player's configured body model (inner breasts and outer cloth
+ * garment)
+ * to the "body" attachment point, deformed each frame by that player's physics
+ * engine(s).
  *
  * <p>
  * Geometry submission is delegated entirely to FranklyLib's
- * {@link FranklyAttachmentRenderer} — Anatomica no longer keeps its own copy of the
+ * {@link FranklyAttachmentRenderer} — Anatomica no longer keeps its own copy of
+ * the
  * attachment-transform/quad-submission code.
  */
 public final class BodyRenderLayer<S extends AvatarRenderState, M extends HumanoidModel<S>> extends RenderLayer<S, M> {
@@ -104,9 +105,11 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
 
         // Inner realistic layer (solid flesh tone fill)
         renderSide(poseStack, renderQueue, renderState, packedLight, model, leftLayout,
-                physics.leftEngine(), BodyAttachmentMath.forBreastSide(config, -1), renderType, config.innerColor(), partialTick);
+                physics.leftEngine(), BodyAttachmentMath.forBreastSide(config, -1), renderType, config.innerColor(),
+                partialTick);
         renderSide(poseStack, renderQueue, renderState, packedLight, model, rightLayout,
-                physics.rightEngine(), BodyAttachmentMath.forBreastSide(config, 1), renderType, config.innerColor(), partialTick);
+                physics.rightEngine(), BodyAttachmentMath.forBreastSide(config, 1), renderType, config.innerColor(),
+                partialTick);
 
         // Outer cloth layer (samples player torso texture region)
         if (config.clothEnabled()) {
