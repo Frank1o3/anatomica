@@ -1,6 +1,7 @@
 package com.frank1o3.anatomica.client.registry;
 
 import com.frank1o3.anatomica.Anatomica;
+import com.frank1o3.anatomica.client.SimdSupport;
 import com.frank1o3.anatomica.client.model.BreastDeformableModel;
 import com.frank1o3.anatomica.client.model.ClothDeformableModel;
 import com.frank1o3.anatomica.client.model.RoundedBreastDeformableModel;
@@ -35,7 +36,7 @@ public final class AnatomicaRegistries {
             .createRegistryKey(Anatomica.id("physics_engines"));
 
     public static final DefaultedRegistry<PhysicsEngineFactory> PHYSICS_ENGINES = FabricRegistryBuilder
-            .createDefaulted(PHYSICS_ENGINES_KEY, Anatomica.id("advanced_softbody"))
+            .createDefaulted(PHYSICS_ENGINES_KEY, Anatomica.id("softbody"))
             .buildAndRegister();
 
     private static final ResourceKey<Registry<ModelFactory>> INNER_MODELS_KEY = ResourceKey
@@ -60,6 +61,17 @@ public final class AnatomicaRegistries {
                 SoftbodyPhysicsEngine::new);
         Registry.register(AnatomicaRegistries.PHYSICS_ENGINES, Anatomica.id("advanced_softbody"),
                 AdvancedSoftbodyPhysicsEngine::new);
+        if (SimdSupport.isAvailable()) {
+            // Using an anonymous class or a decoupled lambda hides
+            // 'AdvancedSoftbodySimdEngine'
+            // from the JVM class verifier until this specific branch executes.
+            Registry.register(PHYSICS_ENGINES, Anatomica.id("advanced_softbody_simd"), () -> {
+                return new com.frank1o3.anatomica.client.physics.AdvancedSoftbodySimdEngine();
+            });
+        } else {
+            Anatomica.LOGGER.info(
+                    "SIMD physics engine unavailable — launch with --add-modules jdk.incubator.vector to enable it");
+        }
 
         Registry.register(AnatomicaRegistries.INNER_MODELS, Anatomica.id("wedge"), WedgeDeformableModel::new);
         Registry.register(AnatomicaRegistries.INNER_MODELS, Anatomica.id("rounded"),

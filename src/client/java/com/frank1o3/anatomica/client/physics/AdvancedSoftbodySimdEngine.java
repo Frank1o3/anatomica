@@ -7,6 +7,9 @@ import com.frank1o3.anatomica.physics.IPhysicsEngine;
 import com.frank1o3.anatomica.physics.LivingEntityLike;
 import com.frank1o3.franklylib.Vec3;
 
+import jdk.incubator.vector.FloatVector;
+import jdk.incubator.vector.VectorOperators;
+import jdk.incubator.vector.VectorSpecies;
 import net.minecraft.util.Mth;
 
 /**
@@ -34,7 +37,7 @@ import net.minecraft.util.Mth;
  * spring/PBD system must operate on a sufficiently small timestep rather than
  * treating one Minecraft tick as one unrestricted Euler integration.
  */
-public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
+public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
 
     /*
      * -------------------------------------------------------------------------
@@ -53,7 +56,7 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
      * This is intentionally the central iteration control.
      */
     private static final int PHYSICS_ITERATIONS = 8;
-    private static final float REFERENCE_TICK_DELTA = 1.0f / 40.0f;
+    private static final float REFERENCE_TICK_DELTA = 1.0f / 20.0f;
 
     /**
      * Fraction of the solver budget conceptually assigned to spring dynamics.
@@ -174,6 +177,21 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
     private final float[] impulseY;
     private final float[] impulseZ;
 
+    private static final VectorSpecies<Float> SPECIES = FloatVector.SPECIES_PREFERRED;
+    /**
+     * SoftbodyGridLayout.index puts the fixed anchor layer (z=0) at indices
+     * [0, DYNAMIC_START) and every dynamic node at [DYNAMIC_START, nodeCount).
+     * Every vectorized loop below relies on that contiguity to skip fixed nodes
+     * by range instead of per-lane masking. If the grid topology ever stops
+     * putting fixed nodes first, these loops need VectorMask reintroduced.
+     */
+    private static final int DYNAMIC_START = SoftbodyGridLayout.ROWS * SoftbodyGridLayout.COLS;
+
+    private final float[] restPosX;
+    private final float[] restPosY;
+    private final float[] restPosZ;
+    private final float[] nodeInverseMass;
+
     /*
      * -------------------------------------------------------------------------
      * Entity history
@@ -215,13 +233,24 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
     @SuppressWarnings("unused")
     private boolean initialized;
 
-    public AdvancedSoftbodyPhysicsEngine() {
+    public AdvancedSoftbodySimdEngine() {
         this.layout = SoftbodyGridLayout.build();
         int nodeCount = layout.restPositions().length;
         this.constraintPairs = layout.constraintPairs().toArray(new int[0][]);
         this.volumeCells = buildVolumeCells();
         this.restLengths = new float[constraintPairs.length];
         this.nodeMass = new float[nodeCount];
+        this.restPosX = new float[nodeCount];
+        this.restPosY = new float[nodeCount];
+        this.restPosZ = new float[nodeCount];
+        this.nodeInverseMass = new float[nodeCount];
+        for (int i = 0; i < nodeCount; i++) {
+            Vec3 rest = layout.restPositions()[i];
+            restPosX[i] = rest.x();
+            restPosY[i] = rest.y();
+            restPosZ[i] = rest.z();
+            nodeInverseMass[i] = inverseMass(i);
+        }
 
         /*
          * Preserve the mass distribution used by the default implementation:
@@ -232,12 +261,18 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
 
         for (int i = 0; i < nodeCount; i++) {
             Vec3 rest = layout.restPositions()[i];
+
             float zFactor = maxZ > 0.0f
                     ? rest.z() / maxZ
                     : 0.0f;
+
             nodeMass[i] = layout.fixed()[i]
                     ? Float.MAX_VALUE
                     : 0.8f + zFactor * 0.4f;
+        }
+
+        for (int i = 0; i < nodeCount; i++) {
+            nodeInverseMass[i] = inverseMass(i);
         }
 
         for (int i = 0; i < constraintPairs.length; i++) {
@@ -325,7 +360,6 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
          * The normal Minecraft tick is expected to be approximately 1.0.
          */
         float frameDelta = sanitizeDeltaTime(deltaTime) / REFERENCE_TICK_DELTA;
-        ;
 
         /*
          * Rendering interpolation relies on these being the positions from
@@ -668,29 +702,22 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
         }
     }
 
-    private void collectGravityAndBuoyancy(
-            EntityState state,
-            IBodyConfig config) {
-
-        /*
-         * Preserve the gravity convention used by the working default engine:
-         * positive local Y is the direction of the resting sag.
-         *
-         * Swimming reduces the effective gravitational pull rather than
-         * completely replacing the physics with a special animation.
-         */
-        float gravity = GRAVITY_ACCEL
-                * config.size();
+    private void collectGravityAndBuoyancy(EntityState state, IBodyConfig config) {
+        float gravity = GRAVITY_ACCEL * config.size();
         if (state.swimming()) {
             gravity *= BUOYANCY_FACTOR;
         }
+        FloatVector gravityVec = FloatVector.broadcast(SPECIES, gravity);
 
-        for (int i = 0; i < posX.length; i++) {
-            if (layout.fixed()[i]) {
-                continue;
-            }
-            float mass = nodeMass[i];
-            forceY[i] += gravity * mass;
+        int i = DYNAMIC_START;
+        int upperBound = SPECIES.loopBound(posX.length - DYNAMIC_START) + DYNAMIC_START;
+        for (; i < upperBound; i += SPECIES.length()) {
+            FloatVector mass = FloatVector.fromArray(SPECIES, nodeMass, i);
+            FloatVector fy = FloatVector.fromArray(SPECIES, forceY, i);
+            fy.add(gravityVec.mul(mass)).intoArray(forceY, i);
+        }
+        for (; i < posX.length; i++) {
+            forceY[i] += gravity * nodeMass[i];
         }
     }
 
@@ -844,7 +871,8 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
         }
     }
 
-    private void addVerticalImpulse(float amount) {
+    private void addVerticalImpulse(
+            float amount) {
         for (int i = 0; i < impulseY.length; i++) {
             if (layout.fixed()[i]) {
                 continue;
@@ -896,56 +924,36 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
         clearImpulseBuffers();
     }
 
-    private void integrateForces(
-            IBodyConfig config,
-            float deltaTime) {
-        for (int i = 0; i < posX.length; i++) {
-            if (layout.fixed()[i]) {
-                continue;
-            }
-            float invMass = inverseMass(i);
+    private void integrateForces(IBodyConfig config, float deltaTime) {
+        float damping = timestepDamping(deltaTime);
+        FloatVector dtVec = FloatVector.broadcast(SPECIES, deltaTime);
+        FloatVector dampingVec = FloatVector.broadcast(SPECIES, damping);
+        FloatVector maxVel = FloatVector.broadcast(SPECIES, MAX_VELOCITY);
+        FloatVector minVel = FloatVector.broadcast(SPECIES, -MAX_VELOCITY);
 
-            /*
-             * Force -> acceleration.
-             */
-            float accelerationX = forceX[i] * invMass;
-            float accelerationY = forceY[i] * invMass;
-            float accelerationZ = forceZ[i] * invMass;
-
-            /*
-             * Acceleration -> velocity.
-             *
-             * Delta time is explicitly applied here.
-             */
-            velX[i] += accelerationX * deltaTime;
-            velY[i] += accelerationY * deltaTime;
-            velZ[i] += accelerationZ * deltaTime;
-
-            /*
-             * Dynamic damping is multiplicative and timestep-aware.
-             */
-            float damping = timestepDamping(
-                    deltaTime);
-            velX[i] *= damping;
-            velY[i] *= damping;
-            velZ[i] *= damping;
-
-            /*
-             * Safety only. Normal behavior should live well below this limit.
-             */
-            velX[i] = Mth.clamp(
-                    velX[i],
-                    -MAX_VELOCITY,
-                    MAX_VELOCITY);
-            velY[i] = Mth.clamp(
-                    velY[i],
-                    -MAX_VELOCITY,
-                    MAX_VELOCITY);
-            velZ[i] = Mth.clamp(
-                    velZ[i],
-                    -MAX_VELOCITY,
-                    MAX_VELOCITY);
+        int i = DYNAMIC_START;
+        int upperBound = SPECIES.loopBound(posX.length - DYNAMIC_START) + DYNAMIC_START;
+        for (; i < upperBound; i += SPECIES.length()) {
+            FloatVector invMass = FloatVector.fromArray(SPECIES, nodeInverseMass, i);
+            integrateAxis(velX, forceX, i, invMass, dtVec, dampingVec, maxVel, minVel);
+            integrateAxis(velY, forceY, i, invMass, dtVec, dampingVec, maxVel, minVel);
+            integrateAxis(velZ, forceZ, i, invMass, dtVec, dampingVec, maxVel, minVel);
         }
+        for (; i < posX.length; i++) {
+            float invMass = nodeInverseMass[i];
+            velX[i] = Mth.clamp((velX[i] + forceX[i] * invMass * deltaTime) * damping, -MAX_VELOCITY, MAX_VELOCITY);
+            velY[i] = Mth.clamp((velY[i] + forceY[i] * invMass * deltaTime) * damping, -MAX_VELOCITY, MAX_VELOCITY);
+            velZ[i] = Mth.clamp((velZ[i] + forceZ[i] * invMass * deltaTime) * damping, -MAX_VELOCITY, MAX_VELOCITY);
+        }
+    }
+
+    private static void integrateAxis(float[] vel, float[] force, int i, FloatVector invMass,
+            FloatVector dtVec, FloatVector dampingVec, FloatVector maxVel, FloatVector minVel) {
+        FloatVector v = FloatVector.fromArray(SPECIES, vel, i)
+                .add(FloatVector.fromArray(SPECIES, force, i).mul(invMass).mul(dtVec))
+                .mul(dampingVec)
+                .min(maxVel).max(minVel);
+        v.intoArray(vel, i);
     }
 
     private void integratePositions(
@@ -1261,42 +1269,42 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
      * -------------------------------------------------------------------------
      */
 
-    private void updateAdaptiveDamping(
-            IBodyConfig config) {
-        float totalVelocity = 0.0f;
-        float totalDeformation = 0.0f;
-        int dynamicNodes = 0;
-
-        for (int i = 0; i < posX.length; i++) {
-            if (layout.fixed()[i]) {
-                continue;
-            }
-            dynamicNodes++;
-            float speed = (float) Math.sqrt(
-                    velX[i] * velX[i]
-                            + velY[i] * velY[i]
-                            + velZ[i] * velZ[i]);
-
-            totalVelocity += speed;
-            Vec3 rest = layout.restPositions()[i];
-            float dx = posX[i] - rest.x();
-            float dy = posY[i] - rest.y();
-            float dz = posZ[i] - rest.z();
-            totalDeformation += (float) Math.sqrt(
-                    dx * dx
-                            + dy * dy
-                            + dz * dz);
-        }
-
-        if (dynamicNodes == 0) {
+    private void updateAdaptiveDamping(IBodyConfig config) {
+        int dynamicNodeCount = posX.length - DYNAMIC_START;
+        if (dynamicNodeCount == 0) {
             return;
         }
 
-        float inverseNodeCount = 1.0f / dynamicNodes;
-        float averageVelocity = totalVelocity
-                * inverseNodeCount;
-        float averageDeformation = totalDeformation
-                * inverseNodeCount;
+        FloatVector velocitySum = FloatVector.zero(SPECIES);
+        FloatVector deformationSum = FloatVector.zero(SPECIES);
+
+        int i = DYNAMIC_START;
+        int upperBound = SPECIES.loopBound(posX.length - DYNAMIC_START) + DYNAMIC_START;
+        for (; i < upperBound; i += SPECIES.length()) {
+            FloatVector vx = FloatVector.fromArray(SPECIES, velX, i);
+            FloatVector vy = FloatVector.fromArray(SPECIES, velY, i);
+            FloatVector vz = FloatVector.fromArray(SPECIES, velZ, i);
+            velocitySum = velocitySum.add(vx.mul(vx).add(vy.mul(vy)).add(vz.mul(vz)).sqrt());
+
+            FloatVector dx = FloatVector.fromArray(SPECIES, posX, i).sub(FloatVector.fromArray(SPECIES, restPosX, i));
+            FloatVector dy = FloatVector.fromArray(SPECIES, posY, i).sub(FloatVector.fromArray(SPECIES, restPosY, i));
+            FloatVector dz = FloatVector.fromArray(SPECIES, posZ, i).sub(FloatVector.fromArray(SPECIES, restPosZ, i));
+            deformationSum = deformationSum.add(dx.mul(dx).add(dy.mul(dy)).add(dz.mul(dz)).sqrt());
+        }
+
+        float totalVelocity = velocitySum.reduceLanes(VectorOperators.ADD);
+        float totalDeformation = deformationSum.reduceLanes(VectorOperators.ADD);
+        for (; i < posX.length; i++) {
+            totalVelocity += (float) Math.sqrt(velX[i] * velX[i] + velY[i] * velY[i] + velZ[i] * velZ[i]);
+            float dx = posX[i] - restPosX[i];
+            float dy = posY[i] - restPosY[i];
+            float dz = posZ[i] - restPosZ[i];
+            totalDeformation += (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
+        float inverseNodeCount = 1.0f / dynamicNodeCount;
+        float averageVelocity = totalVelocity * inverseNodeCount;
+        float averageDeformation = totalDeformation * inverseNodeCount;
 
         /*
          * Smooth measurements rather than changing damping based on one noisy
@@ -1403,50 +1411,42 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
     private void enforceBounds() {
         float halfWidth = SoftbodyGridLayout.HALF_WIDTH;
         float halfHeight = SoftbodyGridLayout.HALF_HEIGHT;
+        float lateralBound = halfWidth * 0.8f;
+        float verticalBound = halfHeight * 0.55f;
 
-        for (int i = 0; i < posX.length; i++) {
-            if (layout.fixed()[i]) {
-                continue;
-            }
+        FloatVector lateralVec = FloatVector.broadcast(SPECIES, lateralBound);
+        FloatVector verticalVec = FloatVector.broadcast(SPECIES, verticalBound);
+        FloatVector minZFactor = FloatVector.broadcast(SPECIES, 1.75f);
+        FloatVector maxZFactor = FloatVector.broadcast(SPECIES, 0.81f);
 
-            Vec3 rest = layout.restPositions()[i];
-            /*
-             * Preserve the working default envelope.
-             */
-            float lateralBound = halfWidth * 0.8f;
-            posX[i] = Mth.clamp(
-                    posX[i],
-                    rest.x()
-                            - lateralBound,
-                    rest.x()
-                            + lateralBound);
-            float upwardBound = halfHeight * 0.55f;
-            float downwardBound = halfHeight * 0.55f;
-            posY[i] = Mth.clamp(
-                    posY[i],
-                    rest.y()
-                            - upwardBound,
-                    rest.y()
-                            + downwardBound);
+        int i = DYNAMIC_START;
+        int upperBound = SPECIES.loopBound(posX.length - DYNAMIC_START) + DYNAMIC_START;
+        for (; i < upperBound; i += SPECIES.length()) {
+            FloatVector restX = FloatVector.fromArray(SPECIES, restPosX, i);
+            FloatVector.fromArray(SPECIES, posX, i)
+                    .min(restX.add(lateralVec)).max(restX.sub(lateralVec))
+                    .intoArray(posX, i);
 
-            if (rest.z() < 0.0f) {
-                /*
-                 * Preserve the existing minimum depth / maximum extension
-                 * envelope.
-                 */
-                float minimumZ = rest.z() * 1.75f;
-                float maximumZ = rest.z() * 0.81f;
-                posZ[i] = Mth.clamp(
-                        posZ[i],
-                        minimumZ,
-                        maximumZ);
-            } else {
-                posZ[i] = Mth.clamp(
-                        posZ[i],
-                        -SoftbodyGridLayout.PHYSICS_DEPTH
-                                * 0.25f,
-                        0.0f);
-            }
+            FloatVector restY = FloatVector.fromArray(SPECIES, restPosY, i);
+            FloatVector.fromArray(SPECIES, posY, i)
+                    .min(restY.add(verticalVec)).max(restY.sub(verticalVec))
+                    .intoArray(posY, i);
+
+            // Every dynamic node here has strictly negative rest Z (see
+            // SoftbodyGridLayout.build — only the fixed z=0 layer, excluded from
+            // this range, has rest Z == 0), so the scalar version's rest.z() >= 0
+            // branch is unreachable and intentionally not vectorized. If the grid
+            // topology changes so a dynamic node can have non-negative rest Z,
+            // reinstate that branch here via VectorMask.blend.
+            FloatVector restZ = FloatVector.fromArray(SPECIES, restPosZ, i);
+            FloatVector.fromArray(SPECIES, posZ, i)
+                    .min(restZ.mul(maxZFactor)).max(restZ.mul(minZFactor))
+                    .intoArray(posZ, i);
+        }
+        for (; i < posX.length; i++) {
+            posX[i] = Mth.clamp(posX[i], restPosX[i] - lateralBound, restPosX[i] + lateralBound);
+            posY[i] = Mth.clamp(posY[i], restPosY[i] - verticalBound, restPosY[i] + verticalBound);
+            posZ[i] = Mth.clamp(posZ[i], restPosZ[i] * 1.75f, restPosZ[i] * 0.81f);
         }
     }
 

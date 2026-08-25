@@ -31,6 +31,11 @@ loom {
 			sourceSet sourceSets.client
 		}
 	}
+	runs {
+		client {
+			vmArg "--add-modules=jdk.incubator.vector"
+		}
+	}
 }
 
 dependencies {
@@ -51,6 +56,7 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = Integer.parseInt(project.java_version)
+	it.options.compilerArgs += ['--add-modules', 'jdk.incubator.vector']
 }
 
 java {

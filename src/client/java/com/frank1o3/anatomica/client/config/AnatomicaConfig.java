@@ -39,7 +39,7 @@ public final class AnatomicaConfig {
     public static final FloatConfigKey BOUNCE_STRENGTH = new FloatConfigKey("bounce_strength", 0.25f, 0.0f, 1.0f);
     public static final FloatConfigKey SOFTNESS = new FloatConfigKey("softness", 0.35f, 0.0f, 1.0f);
     public static final IdentifierConfigKey PHYSICS_ENGINE_ID = new IdentifierConfigKey("physics_engine",
-            Anatomica.id("softbody"),
+            Anatomica.id("advanced_softbody"),
             () -> AnatomicaRegistries.PHYSICS_ENGINES);
     public static final IdentifierConfigKey MODEL_ID = new IdentifierConfigKey("model", Anatomica.id("breast"),
             () -> AnatomicaRegistries.INNER_MODELS);
@@ -92,6 +92,7 @@ public final class AnatomicaConfig {
         void writeInto(CompoundTag tag, BodyConfig config) {
             key.write(tag, getter.apply(config));
         }
+
         void readInto(CompoundTag tag, BodyConfig config) {
             setter.accept(config, key.read(tag));
         }
