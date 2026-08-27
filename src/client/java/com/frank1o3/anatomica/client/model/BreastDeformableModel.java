@@ -114,7 +114,6 @@ public final class BreastDeformableModel implements IDeformableModel {
             }
         }
 
-        addNippleCap(vertexList, indexList, nodeRest);
         vertices = vertexList.toArray(new ModelVertex[0]);
         indices = indexList.stream().mapToInt(Integer::intValue).toArray();
     }
@@ -128,66 +127,6 @@ public final class BreastDeformableModel implements IDeformableModel {
         // the boundary is crossed at a steeper angle. This trades a slightly
         // rounder peak for a boundary that closes cleanly.
         return t * t * (3f - 2f * t);
-    }
-
-    /**
-     * Grafts a small hemisphere onto the breast dome's apex as its own dense
-     * sub-mesh, rather than perturbing the shared breast grid. The grid is too
-     * coarse to represent curvature it doesn't have vertices for — no amount of
-     * tuning a perturbation on it produces a round bump, only a faceted one.
-     *
-     * <p>
-     * Uses the same theta/phi parametrization as {@code MeshBuilder.uvSphere},
-     * just capped at the equator (theta in [0, PI/2]) instead of generating a
-     * full sphere and discarding half of it.
-     */
-    private static void addNippleCap(List<ModelVertex> vertexList, List<Integer> indexList, Vec3[] nodeRest) {
-        // Same biased-apex math as the main loop, evaluated at dead center (nx=ny=0
-        // in the biased frame) to find where the cap should sit.
-        Vec3 apex = breastSurfacePosition(
-                0f,
-                VERTICAL_BIAS * SoftbodyGridLayout.HALF_HEIGHT);
-
-        int base = vertexList.size();
-        int rowWidth = NIPPLE_SEGMENTS + 1;
-
-        for (int ring = 0; ring <= NIPPLE_RINGS; ring++) {
-            float theta = (float) (Math.PI / 2.0) * ring / NIPPLE_RINGS; // 0 (tip) .. PI/2 (base)
-            float sinTheta = (float) Math.sin(theta);
-            float cosTheta = (float) Math.cos(theta);
-            for (int segment = 0; segment <= NIPPLE_SEGMENTS; segment++) {
-                float phi = (float) (2.0 * Math.PI * segment / NIPPLE_SEGMENTS);
-                // Local sphere space, then rotated -90 deg about X so the pole
-                // (local +Y) points along -Z — outward, matching the breast
-                // surface's own outward direction.
-                float worldX = NIPPLE_RADIUS * (float) Math.sin(phi) * sinTheta;
-                float worldY = NIPPLE_RADIUS * (float) Math.cos(phi) * sinTheta;
-                float worldZ = -NIPPLE_RADIUS * cosTheta;
-
-                Vec3 position = apex.add(new Vec3(worldX, worldY, worldZ));
-                NodeWeighting.Result w = NodeWeighting.nearest(position, nodeRest, NIPPLE_INFLUENCES_PER_VERTEX);
-                // UV is a placeholder — this cap is a solid-fill target, not a
-                // texture-sampled one; revisit once per-vertex nipple color lands.
-                vertexList.add(new ModelVertex(position, 0.5f, 0.5f, UVDirection.NORTH, w.influences(), w.weights()));
-            }
-        }
-
-        // Same reversed winding as the main dome loop, for the same reason: this
-        // surface also faces outward toward -Z.
-        for (int ring = 0; ring < NIPPLE_RINGS; ring++) {
-            for (int segment = 0; segment < NIPPLE_SEGMENTS; segment++) {
-                int a = base + ring * rowWidth + segment;
-                int b = a + 1;
-                int c = a + rowWidth;
-                int d = c + 1;
-                indexList.add(a);
-                indexList.add(c);
-                indexList.add(b);
-                indexList.add(b);
-                indexList.add(c);
-                indexList.add(d);
-            }
-        }
     }
 
     private static Vec3 breastSurfacePosition(float x, float y) {

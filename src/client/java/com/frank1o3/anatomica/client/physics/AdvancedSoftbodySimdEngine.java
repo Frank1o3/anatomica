@@ -55,7 +55,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
      *
      * This is intentionally the central iteration control.
      */
-    private static final int PHYSICS_ITERATIONS = 8;
+    private static final int PHYSICS_ITERATIONS = 10;
     private static final float REFERENCE_TICK_DELTA = 1.0f / 20.0f;
 
     /**
@@ -63,12 +63,12 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
      *
      * The remaining budget belongs to PBD stabilization.
      */
-    private static final float SPRING_ITERATION_RATIO = 0.60f;
+    private static final float SPRING_ITERATION_RATIO = 0.50f;
 
     /**
      * Initial spring stiffness.
      */
-    private static final float SPRING_STIFFNESS_BASE = 4.0f;
+    private static final float SPRING_STIFFNESS_BASE = 4.5f;
 
     /**
      * Initial spring damping.
@@ -96,12 +96,12 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
     /**
      * How strongly entity acceleration is transferred into tissue inertia.
      */
-    private static final float REACTIVITY_SCALE = 2.5f;
+    private static final float REACTIVITY_SCALE = 1.5f;
 
     /**
      * Gravity used by the soft-body system.
      */
-    private static final float GRAVITY_ACCEL = 0.028f;
+    private static final float GRAVITY_ACCEL = 0.328f;
 
     /**
      * Fraction of gravity retained while the entity is swimming.
