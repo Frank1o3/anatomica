@@ -1,5 +1,62 @@
 package com.frank1o3.anatomica.client.physics;
 
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.ACTIVITY_BLEND;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.ADAPTATION_RATE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.ADAPTIVE_ACTIVITY_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.ADAPTIVE_BASELINE_MAX;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.ADAPTIVE_BASELINE_MIN;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.BOUNCE_BASE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.BOUNCE_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.BUOYANCY_FACTOR;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.DEFORMATION_NORMALIZER;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.DELTA_TIME_MAX;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.DELTA_TIME_MIN;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.FORWARD_REACTION_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.GEOMETRY_EPSILON;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.GRAVITY_ACCEL;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.IMPULSE_CUTOFF;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.IMPULSE_FALLOFF;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.INITIAL_DYNAMIC_DAMPING;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.LATERAL_BOUND_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.MAX_DEPTH_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.MAX_DYNAMIC_DAMPING;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.MAX_VELOCITY;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.MAX_VERTICAL_MOTION;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.MIN_DEPTH_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.MIN_DYNAMIC_DAMPING;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.NODE_MASS_BASE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.NODE_MASS_DEPTH_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.PASSENGER_FORCE_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.PBD_COMPLIANCE_BASE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.PBD_COMPLIANCE_SOFTNESS;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.PHYSICS_ITERATIONS;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.POSE_IMPULSE_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.PRESSURE_BASE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.PRESSURE_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.REACTIVITY_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.RECONSTRUCTION_BLEND;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.REFERENCE_TICK_DELTA;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.SPECIAL_MOVEMENT_FORCE_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.SPRING_DAMPING_BASE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.SPRING_DAMPING_MAX;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.SPRING_DAMPING_MIN;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.SPRING_DAMPING_SOFTNESS_BASE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.SPRING_ITERATION_RATIO;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.SPRING_STIFFNESS_BASE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.SPRING_STIFFNESS_MAX;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.SPRING_STIFFNESS_MIN;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.SPRING_STIFFNESS_SOFTNESS_BASE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.SWING_IMPULSE_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VELOCITY_EPSILON;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VERTICAL_BOUND_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VERTICAL_MOTION_RESPONSE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VERTICAL_RESPONSE_SIGN;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VOLUME_CORRECTION_LIMIT;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VOLUME_ERROR_LIMIT;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VOLUME_SETTING_MAX;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.YAW_RESPONSE_SCALE;
+import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.volumeTargetScale;
+
 import java.util.Arrays;
 
 import com.frank1o3.anatomica.config.IBodyConfig;
@@ -50,84 +107,6 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
      * The solver maintains adaptive state for damping and stabilization.
      */
 
-    /**
-     * Total physics substeps performed for one engine tick.
-     *
-     * This is intentionally the central iteration control.
-     */
-    private static final int PHYSICS_ITERATIONS = 10;
-    private static final float REFERENCE_TICK_DELTA = 1.0f / 20.0f;
-
-    /**
-     * Fraction of the solver budget conceptually assigned to spring dynamics.
-     *
-     * The remaining budget belongs to PBD stabilization.
-     */
-    private static final float SPRING_ITERATION_RATIO = 0.50f;
-
-    /**
-     * Initial spring stiffness.
-     */
-    private static final float SPRING_STIFFNESS_BASE = 4.5f;
-
-    /**
-     * Initial spring damping.
-     *
-     * This is only the starting point. The actual damping used by the solver
-     * is dynamically adapted.
-     */
-    private static final float SPRING_DAMPING_BASE = 0.7f;
-
-    /**
-     * Initial adaptive damping.
-     */
-    private static final float INITIAL_DYNAMIC_DAMPING = 0.98f;
-
-    /**
-     * Minimum dynamic damping multiplier.
-     */
-    private static final float MIN_DYNAMIC_DAMPING = 0.70f;
-
-    /**
-     * Maximum dynamic damping multiplier.
-     */
-    private static final float MAX_DYNAMIC_DAMPING = 1.0f;
-
-    /**
-     * How strongly entity acceleration is transferred into tissue inertia.
-     */
-    private static final float REACTIVITY_SCALE = 1.5f;
-
-    /**
-     * Gravity used by the soft-body system.
-     */
-    private static final float GRAVITY_ACCEL = 0.328f;
-
-    /**
-     * Fraction of gravity retained while the entity is swimming.
-     *
-     * This is deliberately kept as a physical modifier rather than a separate
-     * swimming animation.
-     */
-    private static final float BUOYANCY_FACTOR = 0.35f;
-
-    /**
-     * Maximum node velocity used as a numerical safety limit.
-     *
-     * This is not intended to define normal physical behavior.
-     */
-    private static final float MAX_VELOCITY = 0.05f;
-
-    /**
-     * Small threshold below which velocities are treated as numerical noise.
-     */
-    private static final float VELOCITY_EPSILON = 1.0e-6f;
-
-    /**
-     * Small threshold for invalid/degenerate geometry.
-     */
-    private static final float GEOMETRY_EPSILON = 1.0e-7f;
-
     /*
      * -------------------------------------------------------------------------
      * Layout / topology
@@ -155,6 +134,9 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
     private final float[] prevPosX;
     private final float[] prevPosY;
     private final float[] prevPosZ;
+    private final float[] stepPrevPosX;
+    private final float[] stepPrevPosY;
+    private final float[] stepPrevPosZ;
     private final float[] velX;
     private final float[] velY;
     private final float[] velZ;
@@ -268,7 +250,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
 
             nodeMass[i] = layout.fixed()[i]
                     ? Float.MAX_VALUE
-                    : 0.8f + zFactor * 0.4f;
+                    : NODE_MASS_BASE + zFactor * NODE_MASS_DEPTH_SCALE;
         }
 
         for (int i = 0; i < nodeCount; i++) {
@@ -289,6 +271,9 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
         this.prevPosX = new float[nodeCount];
         this.prevPosY = new float[nodeCount];
         this.prevPosZ = new float[nodeCount];
+        this.stepPrevPosX = new float[nodeCount];
+        this.stepPrevPosY = new float[nodeCount];
+        this.stepPrevPosZ = new float[nodeCount];
         this.velX = new float[nodeCount];
         this.velY = new float[nodeCount];
         this.velZ = new float[nodeCount];
@@ -314,6 +299,9 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
             prevPosX[i] = rest.x();
             prevPosY[i] = rest.y();
             prevPosZ[i] = rest.z();
+            stepPrevPosX[i] = rest.x();
+            stepPrevPosY[i] = rest.y();
+            stepPrevPosZ[i] = rest.z();
             interpX[i] = rest.x();
             interpY[i] = rest.y();
             interpZ[i] = rest.z();
@@ -401,6 +389,16 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
         for (int iteration = 0; iteration < PHYSICS_ITERATIONS; iteration++) {
 
             /*
+             * Keep the start of this substep separate from the previous
+             * completed tick. PBD velocity reconstruction must use this
+             * snapshot; using prevPos here would re-inject the whole tick's
+             * displacement on every substep and create artificial bounce.
+             */
+            System.arraycopy(posX, 0, stepPrevPosX, 0, posX.length);
+            System.arraycopy(posY, 0, stepPrevPosY, 0, posY.length);
+            System.arraycopy(posZ, 0, stepPrevPosZ, 0, posZ.length);
+
+            /*
              * Fixed nodes follow the attachment before calculating forces.
              */
             updateAnchors();
@@ -463,7 +461,10 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
              * while the spring solver continued using the old velocity.
              */
             reconstructVelocities(
-                    substepDelta);
+                    substepDelta,
+                    stepPrevPosX,
+                    stepPrevPosY,
+                    stepPrevPosZ);
         }
 
         /*
@@ -557,6 +558,8 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
 
         return new EntityState(
                 motion,
+                entity.verticalVelocity(),
+                entity.isOnGround(),
                 new Vec3(
                         localAccelerationX,
                         filteredAccelerationY,
@@ -577,6 +580,8 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
      */
     private record EntityState(
             Vec3 motion,
+            float verticalVelocity,
+            boolean onGround,
             Vec3 localAcceleration,
             float yawRate,
             boolean swimming,
@@ -631,14 +636,16 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
          */
         float stiffness = SPRING_STIFFNESS_BASE
                 * Mth.clamp(
-                        1.4f - softness * 0.8f,
-                        0.15f,
-                        2.0f);
+                        SPRING_STIFFNESS_SOFTNESS_BASE
+                                - softness * AdvancedSoftbodySolverConfig.SPRING_STIFFNESS_SOFTNESS_SCALE,
+                        SPRING_STIFFNESS_MIN,
+                        SPRING_STIFFNESS_MAX);
         float damping = SPRING_DAMPING_BASE
                 * Mth.clamp(
-                        1.2f - softness * 0.6f,
-                        0.25f,
-                        1.5f);
+                        SPRING_DAMPING_SOFTNESS_BASE
+                                - softness * AdvancedSoftbodySolverConfig.SPRING_DAMPING_SOFTNESS_SCALE,
+                        SPRING_DAMPING_MIN,
+                        SPRING_DAMPING_MAX);
         damping *= dynamicDamping;
 
         for (int c = 0; c < constraintPairs.length; c++) {
@@ -725,13 +732,25 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
             EntityState state,
             IBodyConfig config) {
         Vec3 acceleration = state.localAcceleration();
+        float entityVerticalVelocity = state.onGround()
+                ? 0.0f
+                : state.verticalVelocity();
+        float verticalMotion = Mth.clamp(
+                !state.onGround() && Math.abs(entityVerticalVelocity) > GEOMETRY_EPSILON
+                        ? entityVerticalVelocity
+                        : !state.onGround() ? state.motion().y() : 0.0f,
+                -MAX_VERTICAL_MOTION,
+                MAX_VERTICAL_MOTION);
+        float verticalAcceleration = state.onGround()
+                ? 0.0f
+                : acceleration.y();
 
         /*
          * Bounce is treated as a response coefficient rather than as a
          * collection of independent "walking/jumping" impulses.
          */
-        float bounce = 0.4f
-                + config.bounceStrength() * 1.6f;
+        float bounce = BOUNCE_BASE
+                + config.bounceStrength() * BOUNCE_SCALE;
 
         for (int i = 0; i < posX.length; i++) {
             if (layout.fixed()[i]) {
@@ -751,16 +770,22 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
                     * REACTIVITY_SCALE
                     * bounce
                     * zFactor;
-            forceY[i] += -acceleration.y()
+            forceY[i] += VERTICAL_RESPONSE_SIGN * verticalAcceleration
                     * mass
                     * REACTIVITY_SCALE
                     * bounce
+                    * zFactor;
+            forceY[i] += VERTICAL_RESPONSE_SIGN * verticalMotion
+                    * mass
+                    * REACTIVITY_SCALE
+                    * bounce
+                    * VERTICAL_MOTION_RESPONSE
                     * zFactor;
             forceZ[i] += -acceleration.z()
                     * mass
                     * REACTIVITY_SCALE
                     * bounce
-                    * 2.0f
+                    * FORWARD_REACTION_SCALE
                     * zFactor;
         }
     }
@@ -780,13 +805,13 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
             return;
         }
 
-        float bounce = 0.4f + config.bounceStrength() * 1.6f;
+        float bounce = BOUNCE_BASE + config.bounceStrength() * BOUNCE_SCALE;
         /*
          * Convert angular motion into a lateral reaction. The coefficient is
          * deliberately conservative because the body's actual response still
          * comes from springs/PBD rather than directly moving the mesh.
          */
-        float angularResponse = yawRate * 0.01f * bounce;
+        float angularResponse = yawRate * YAW_RESPONSE_SCALE * bounce;
 
         for (int i = 0; i < posX.length; i++) {
             if (layout.fixed()[i]) {
@@ -818,14 +843,14 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
     private void collectEventImpulses(
             EntityState state,
             IBodyConfig config) {
-        float bounce = 0.4f
-                + config.bounceStrength() * 1.6f;
+        float bounce = BOUNCE_BASE
+                + config.bounceStrength() * BOUNCE_SCALE;
 
         /*
          * Crouch transition.
          */
         if (state.crouching() != wasCrouching) {
-            float impulse = bounce * 0.15f;
+            float impulse = bounce * POSE_IMPULSE_SCALE;
             addVerticalImpulse(
                     impulse);
             wasCrouching = state.crouching();
@@ -835,7 +860,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
          * Sleep transition.
          */
         if (state.sleeping() != wasSleeping) {
-            float impulse = bounce * 0.15f;
+            float impulse = bounce * POSE_IMPULSE_SCALE;
             addVerticalImpulse(
                     impulse);
             wasSleeping = state.sleeping();
@@ -848,7 +873,8 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
          */
         float swing = state.swingProgress();
         if (swing > 0.0f) {
-            float swingImpulse = Mth.sin(swing * Mth.PI) * bounce * 0.5f / PHYSICS_ITERATIONS;
+            float swingImpulse = Mth.sin(swing * Mth.PI) * bounce * SWING_IMPULSE_SCALE
+                    / PHYSICS_ITERATIONS;
             addVerticalImpulse(swingImpulse);
         }
 
@@ -858,7 +884,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
          * This is a state modifier, not an ordering-dependent event.
          */
         if (state.passenger()) {
-            dampLateralForces(0.5f);
+            dampLateralForces(PASSENGER_FORCE_SCALE);
         }
 
         /*
@@ -867,7 +893,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
          */
         if (state.swimming()
                 || state.fallFlying()) {
-            forceYScale(0.4f);
+            forceYScale(SPECIAL_MOVEMENT_FORCE_SCALE);
         }
     }
 
@@ -941,9 +967,12 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
         }
         for (; i < posX.length; i++) {
             float invMass = nodeInverseMass[i];
-            velX[i] = Mth.clamp((velX[i] + forceX[i] * invMass * deltaTime) * damping, -MAX_VELOCITY, MAX_VELOCITY);
-            velY[i] = Mth.clamp((velY[i] + forceY[i] * invMass * deltaTime) * damping, -MAX_VELOCITY, MAX_VELOCITY);
-            velZ[i] = Mth.clamp((velZ[i] + forceZ[i] * invMass * deltaTime) * damping, -MAX_VELOCITY, MAX_VELOCITY);
+            velX[i] = Mth.clamp((velX[i] + forceX[i] * invMass * deltaTime) * damping, -MAX_VELOCITY,
+                    MAX_VELOCITY);
+            velY[i] = Mth.clamp((velY[i] + forceY[i] * invMass * deltaTime) * damping, -MAX_VELOCITY,
+                    MAX_VELOCITY);
+            velZ[i] = Mth.clamp((velZ[i] + forceZ[i] * invMass * deltaTime) * damping, -MAX_VELOCITY,
+                    MAX_VELOCITY);
         }
     }
 
@@ -991,7 +1020,8 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
          * A hard-coded "spring" is therefore not the only thing determining
          * the final shape.
          */
-        float compliance = 0.01f + softness * 0.08f;
+        float compliance = PBD_COMPLIANCE_BASE
+                + softness * PBD_COMPLIANCE_SOFTNESS;
 
         for (int c = 0; c < constraintPairs.length; c++) {
             int a = constraintPairs[c][0];
@@ -1111,7 +1141,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
          * The neutral point remains the rest volume.
          */
         float normalized = Mth.clamp(
-                volumeStrength,
+                volumeStrength / VOLUME_SETTING_MAX,
                 0.0f,
                 1.0f);
 
@@ -1119,10 +1149,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
          * A conservative target range keeps the solver from instantly
          * destroying the geometry at extreme UI values.
          */
-        float targetScale = Mth.lerp(
-                0.78f,
-                1.22f,
-                normalized);
+        float targetScale = volumeTargetScale(volumeStrength);
         float targetVolume = restVolume
                 * targetScale;
         float volumeError = targetVolume
@@ -1140,8 +1167,8 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
                         GEOMETRY_EPSILON);
         relativeError = Mth.clamp(
                 relativeError,
-                -0.25f,
-                0.25f);
+                -VOLUME_ERROR_LIMIT,
+                VOLUME_ERROR_LIMIT);
 
         /*
          * The correction is applied along the chest-to-front axis because this
@@ -1151,7 +1178,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
          * determines the pressure/volume target.
          */
         float pressure = relativeError
-                * (0.18f + normalized * 0.22f);
+                * (PRESSURE_BASE + normalized * PRESSURE_SCALE);
         for (int i = 0; i < posZ.length; i++) {
             if (layout.fixed()[i]) {
                 continue;
@@ -1180,7 +1207,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
              */
             float maximumCorrection = Math.abs(
                     depth)
-                    * 0.08f;
+                    * VOLUME_CORRECTION_LIMIT;
             posZ[i] = Mth.clamp(
                     posZ[i],
                     currentDepth
@@ -1197,7 +1224,10 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
      */
 
     private void reconstructVelocities(
-            float deltaTime) {
+            float deltaTime,
+            float[] previousStepX,
+            float[] previousStepY,
+            float[] previousStepZ) {
         float inverseDt = deltaTime > GEOMETRY_EPSILON
                 ? 1.0f / deltaTime
                 : 1.0f;
@@ -1210,9 +1240,9 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
                 continue;
             }
 
-            float correctedVelocityX = (posX[i] - prevPosX[i]) * inverseDt;
-            float correctedVelocityY = (posY[i] - prevPosY[i]) * inverseDt;
-            float correctedVelocityZ = (posZ[i] - prevPosZ[i]) * inverseDt;
+            float correctedVelocityX = (posX[i] - previousStepX[i]) * inverseDt;
+            float correctedVelocityY = (posY[i] - previousStepY[i]) * inverseDt;
+            float correctedVelocityZ = (posZ[i] - previousStepZ[i]) * inverseDt;
 
             /*
              * The reconstructed value is blended with the existing integrated
@@ -1222,7 +1252,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
              * while still feeding its correction back into the physical
              * velocity state.
              */
-            final float correctionBlend = 0.35f;
+            final float correctionBlend = RECONSTRUCTION_BLEND;
             velX[i] = Mth.lerp(
                     correctionBlend,
                     velX[i],
@@ -1286,9 +1316,12 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
             FloatVector vz = FloatVector.fromArray(SPECIES, velZ, i);
             velocitySum = velocitySum.add(vx.mul(vx).add(vy.mul(vy)).add(vz.mul(vz)).sqrt());
 
-            FloatVector dx = FloatVector.fromArray(SPECIES, posX, i).sub(FloatVector.fromArray(SPECIES, restPosX, i));
-            FloatVector dy = FloatVector.fromArray(SPECIES, posY, i).sub(FloatVector.fromArray(SPECIES, restPosY, i));
-            FloatVector dz = FloatVector.fromArray(SPECIES, posZ, i).sub(FloatVector.fromArray(SPECIES, restPosZ, i));
+            FloatVector dx = FloatVector.fromArray(SPECIES, posX, i)
+                    .sub(FloatVector.fromArray(SPECIES, restPosX, i));
+            FloatVector dy = FloatVector.fromArray(SPECIES, posY, i)
+                    .sub(FloatVector.fromArray(SPECIES, restPosY, i));
+            FloatVector dz = FloatVector.fromArray(SPECIES, posZ, i)
+                    .sub(FloatVector.fromArray(SPECIES, restPosZ, i));
             deformationSum = deformationSum.add(dx.mul(dx).add(dy.mul(dy)).add(dz.mul(dz)).sqrt());
         }
 
@@ -1310,7 +1343,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
          * Smooth measurements rather than changing damping based on one noisy
          * node or one noisy tick.
          */
-        final float activityBlend = 0.15f;
+        final float activityBlend = ACTIVITY_BLEND;
         velocityActivity = Mth.lerp(
                 activityBlend,
                 velocityActivity,
@@ -1333,7 +1366,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
                 1.0f);
         float deformationTerm = Mth.clamp(
                 deformationActivity
-                        / 0.05f,
+                        / DEFORMATION_NORMALIZER,
                 0.0f,
                 1.0f);
         float activity = Math.max(
@@ -1349,18 +1382,18 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
                 0.0f,
                 1.0f);
         float baseline = Mth.lerp(
-                0.90f,
-                0.98f,
+                ADAPTIVE_BASELINE_MIN,
+                ADAPTIVE_BASELINE_MAX,
                 1.0f - softness);
         float target = Mth.lerp(
                 baseline,
                 MAX_DYNAMIC_DAMPING,
-                activity * 0.75f);
+                activity * ADAPTIVE_ACTIVITY_SCALE);
 
         /*
          * Critically, the parameter changes gradually.
          */
-        final float adaptationRate = 0.08f;
+        final float adaptationRate = ADAPTATION_RATE;
         dynamicDamping = Mth.lerp(
                 adaptationRate,
                 dynamicDamping,
@@ -1411,13 +1444,13 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
     private void enforceBounds() {
         float halfWidth = SoftbodyGridLayout.HALF_WIDTH;
         float halfHeight = SoftbodyGridLayout.HALF_HEIGHT;
-        float lateralBound = halfWidth * 0.8f;
-        float verticalBound = halfHeight * 0.55f;
+        float lateralBound = halfWidth * LATERAL_BOUND_SCALE;
+        float verticalBound = halfHeight * VERTICAL_BOUND_SCALE;
 
         FloatVector lateralVec = FloatVector.broadcast(SPECIES, lateralBound);
         FloatVector verticalVec = FloatVector.broadcast(SPECIES, verticalBound);
-        FloatVector minZFactor = FloatVector.broadcast(SPECIES, 1.75f);
-        FloatVector maxZFactor = FloatVector.broadcast(SPECIES, 0.81f);
+        FloatVector minZFactor = FloatVector.broadcast(SPECIES, MIN_DEPTH_SCALE);
+        FloatVector maxZFactor = FloatVector.broadcast(SPECIES, MAX_DEPTH_SCALE);
 
         int i = DYNAMIC_START;
         int upperBound = SPECIES.loopBound(posX.length - DYNAMIC_START) + DYNAMIC_START;
@@ -1446,7 +1479,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
         for (; i < posX.length; i++) {
             posX[i] = Mth.clamp(posX[i], restPosX[i] - lateralBound, restPosX[i] + lateralBound);
             posY[i] = Mth.clamp(posY[i], restPosY[i] - verticalBound, restPosY[i] + verticalBound);
-            posZ[i] = Mth.clamp(posZ[i], restPosZ[i] * 1.75f, restPosZ[i] * 0.81f);
+            posZ[i] = Mth.clamp(posZ[i], restPosZ[i] * MIN_DEPTH_SCALE, restPosZ[i] * MAX_DEPTH_SCALE);
         }
     }
 
@@ -1489,8 +1522,8 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
              * existing engines.
              */
             float weight = (float) Math.exp(
-                    -distanceSquared * 40.0);
-            if (weight < 0.01f) {
+                    -distanceSquared * IMPULSE_FALLOFF);
+            if (weight < IMPULSE_CUTOFF) {
                 continue;
             }
 
@@ -1643,7 +1676,7 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
             return 1.0f;
         }
         Vec3 rest = layout.restPositions()[index];
-        return Mth.clamp(-rest.z() / depth,0.0f,1.0f);
+        return Mth.clamp(-rest.z() / depth, 0.0f, 1.0f);
     }
 
     private float inverseMass(
@@ -1696,8 +1729,8 @@ public final class AdvancedSoftbodySimdEngine implements IPhysicsEngine {
          */
         return Mth.clamp(
                 deltaTime,
-                0.01f,
-                2.0f);
+                DELTA_TIME_MIN,
+                DELTA_TIME_MAX);
     }
 
     /*

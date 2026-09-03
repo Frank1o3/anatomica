@@ -4,6 +4,7 @@ import com.frank1o3.anatomica.uv.UVDirection;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.anatomica.uv.UVQuad;
 import com.mojang.serialization.Codec;
+
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 
@@ -17,7 +18,8 @@ public record BodySyncData(
         boolean breastsEnabled, float size, float petite, float offsetX, float offsetY, float offsetZ,
         UVLayout leftUvLayout, UVLayout rightUvLayout, float spread, float cleavage,
         boolean independentSides, boolean physicsEnabled, float bounceStrength, float softness,
-        String physicsEngineId, String modelId, String clothModelId, boolean clothEnabled, int innerColor, boolean showInArmor) {
+        String physicsEngineId, String modelId, String clothModelId, boolean clothEnabled, int innerColor,
+        boolean showInArmor) {
 
     private static final int MAX_IDENTIFIER_LENGTH = 128;
 
@@ -33,7 +35,7 @@ public record BodySyncData(
                 | (data.clothEnabled ? 1 << 4 : 0);
         buffer.writeByte(flags);
         writeUnit(buffer, data.size);
-        writeUnit(buffer, data.petite);
+        writeVolume(buffer, data.petite);
         writeOffset(buffer, data.offsetX);
         writeOffset(buffer, data.offsetY);
         writeOffset(buffer, data.offsetZ);
@@ -52,7 +54,7 @@ public record BodySyncData(
     public static BodySyncData decode(RegistryFriendlyByteBuf buffer) {
         int flags = buffer.readUnsignedByte();
         float size = readUnit(buffer);
-        float petite = readUnit(buffer);
+        float petite = readVolume(buffer);
         float offsetX = readOffset(buffer);
         float offsetY = readOffset(buffer);
         float offsetZ = readOffset(buffer);
@@ -79,6 +81,14 @@ public record BodySyncData(
         return buffer.readUnsignedShort() / 65535.0F;
     }
 
+    private static void writeVolume(RegistryFriendlyByteBuf buffer, float value) {
+        buffer.writeShort(Math.round(Math.clamp(value, 0.0F, 10.0F) * 65535.0F / 10.0F));
+    }
+
+    private static float readVolume(RegistryFriendlyByteBuf buffer) {
+        return buffer.readUnsignedShort() * 10.0F / 65535.0F;
+    }
+
     private static void writeOffset(RegistryFriendlyByteBuf buffer, float value) {
         buffer.writeShort(Math.round((Math.clamp(value, -0.5F, 0.5F) + 0.5F) * 65535.0F));
     }
@@ -100,8 +110,10 @@ public record BodySyncData(
             UVQuad quad = layout.get(direction);
             buffer.writeBoolean(quad != null);
             if (quad != null) {
-                buffer.writeByte(quad.x1()); buffer.writeByte(quad.y1());
-                buffer.writeByte(quad.x2()); buffer.writeByte(quad.y2());
+                buffer.writeByte(quad.x1());
+                buffer.writeByte(quad.y1());
+                buffer.writeByte(quad.x2());
+                buffer.writeByte(quad.y2());
             }
         }
     }
@@ -120,15 +132,24 @@ public record BodySyncData(
     private CompoundTag toNbt() {
         CompoundTag tag = new CompoundTag();
         tag.putBoolean("breastsEnabled", breastsEnabled);
-        tag.putFloat("size", size); tag.putFloat("petite", petite);
-        tag.putFloat("offsetX", offsetX); tag.putFloat("offsetY", offsetY); tag.putFloat("offsetZ", offsetZ);
+        tag.putFloat("size", size);
+        tag.putFloat("petite", petite);
+        tag.putFloat("offsetX", offsetX);
+        tag.putFloat("offsetY", offsetY);
+        tag.putFloat("offsetZ", offsetZ);
         tag.put("leftUvLayout", writeLayout(leftUvLayout));
         tag.put("rightUvLayout", writeLayout(rightUvLayout));
-        tag.putFloat("spread", spread); tag.putFloat("cleavage", cleavage);
-        tag.putBoolean("independentSides", independentSides); tag.putBoolean("physicsEnabled", physicsEnabled);
-        tag.putFloat("bounceStrength", bounceStrength); tag.putFloat("softness", softness);
-        tag.putString("physicsEngineId", physicsEngineId); tag.putString("modelId", modelId);
-        tag.putString("clothModelId", clothModelId); tag.putBoolean("clothEnabled", clothEnabled); tag.putInt("innerColor", innerColor);
+        tag.putFloat("spread", spread);
+        tag.putFloat("cleavage", cleavage);
+        tag.putBoolean("independentSides", independentSides);
+        tag.putBoolean("physicsEnabled", physicsEnabled);
+        tag.putFloat("bounceStrength", bounceStrength);
+        tag.putFloat("softness", softness);
+        tag.putString("physicsEngineId", physicsEngineId);
+        tag.putString("modelId", modelId);
+        tag.putString("clothModelId", clothModelId);
+        tag.putBoolean("clothEnabled", clothEnabled);
+        tag.putInt("innerColor", innerColor);
         tag.putBoolean("showInArmor", showInArmor);
         return tag;
     }
@@ -157,8 +178,10 @@ public record BodySyncData(
                 continue;
             }
             CompoundTag quadTag = new CompoundTag();
-            quadTag.putInt("x1", quad.x1()); quadTag.putInt("y1", quad.y1());
-            quadTag.putInt("x2", quad.x2()); quadTag.putInt("y2", quad.y2());
+            quadTag.putInt("x1", quad.x1());
+            quadTag.putInt("y1", quad.y1());
+            quadTag.putInt("x2", quad.x2());
+            quadTag.putInt("y2", quad.y2());
             tag.put(direction.getSaveName(), quadTag);
         }
         return tag;

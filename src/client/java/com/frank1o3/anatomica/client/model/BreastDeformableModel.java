@@ -61,11 +61,6 @@ public final class BreastDeformableModel implements IDeformableModel {
                                                          // wider/side-set
     private static final float CONE_MIX = 0.25f; // 0 = fully rounded dome, 1 = fully tapered/conical profile
 
-    private static final float NIPPLE_RADIUS = 0.018f;
-    private static final int NIPPLE_RINGS = 6; // rings from apex to base
-    private static final int NIPPLE_SEGMENTS = 10; // segments around
-    private static final int NIPPLE_INFLUENCES_PER_VERTEX = 4;
-
     private final ModelVertex[] vertices;
     private final int[] indices;
 

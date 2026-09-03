@@ -1,12 +1,19 @@
 package com.frank1o3.anatomica.client.render;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.jetbrains.annotations.Nullable;
+
+import com.frank1o3.anatomica.client.data.EntityBodyData;
 import com.frank1o3.anatomica.client.mixin.accessors.LivingEntityRendererAccessor;
+import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
+import com.frank1o3.anatomica.config.IBodyConfig;
 import com.frank1o3.anatomica.model.IDeformableModel;
 import com.frank1o3.anatomica.model.ModelFactory;
+import com.frank1o3.anatomica.physics.BodyAttachmentMath;
 import com.frank1o3.anatomica.physics.IPhysicsEngine;
-import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
-import com.frank1o3.anatomica.client.data.EntityBodyData;
-import com.frank1o3.anatomica.config.IBodyConfig;
 import com.frank1o3.anatomica.uv.UVLayout;
 import com.frank1o3.franklylib.client.render.AttachmentPoint;
 import com.frank1o3.franklylib.client.render.FranklyAttachmentRenderer;
@@ -22,14 +29,6 @@ import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
-
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.jetbrains.annotations.Nullable;
-
-import com.frank1o3.anatomica.physics.BodyAttachmentMath;
 
 /**
  * Attaches the player's configured body model (inner breasts and outer cloth
@@ -103,12 +102,14 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
         UVLayout rightLayout = config.independentSides() ? config.rightUvLayout() : config.leftUvLayout();
         float partialTick = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);
 
-        // Inner realistic layer (solid flesh tone fill)
+        // Inner layer uses the same torso/skin texture render type without a
+        // solid-color multiplier, so the texture keeps its natural colors.
+        config.innerColor();
         renderSide(poseStack, renderQueue, renderState, packedLight, model, leftLayout,
-                physics.leftEngine(), BodyAttachmentMath.forBreastSide(config, -1), renderType, config.innerColor(),
+                physics.leftEngine(), BodyAttachmentMath.forBreastSide(config, -1), renderType, 0xFFFFFFFF,
                 partialTick);
         renderSide(poseStack, renderQueue, renderState, packedLight, model, rightLayout,
-                physics.rightEngine(), BodyAttachmentMath.forBreastSide(config, 1), renderType, config.innerColor(),
+                physics.rightEngine(), BodyAttachmentMath.forBreastSide(config, 1), renderType, 0xFFFFFFFF,
                 partialTick);
 
         // Outer cloth layer (samples player torso texture region)

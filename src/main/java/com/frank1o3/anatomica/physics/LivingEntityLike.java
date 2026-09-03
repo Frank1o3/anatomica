@@ -26,6 +26,20 @@ public interface LivingEntityLike {
      */
     Vec3 position();
 
+    /**
+     * Current entity vertical velocity in blocks per tick. This is preferable
+     * to differentiating positions because a steady fall has near-zero
+     * acceleration but still needs to drive soft-body motion.
+     */
+    default float verticalVelocity() {
+        return 0.0f;
+    }
+
+    /** Whether the entity is currently supported by the ground. */
+    default boolean isOnGround() {
+        return false;
+    }
+
     boolean isCrouching();
 
     boolean isSleeping();
