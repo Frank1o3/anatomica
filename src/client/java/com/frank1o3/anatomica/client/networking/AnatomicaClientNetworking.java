@@ -44,7 +44,9 @@ public final class AnatomicaClientNetworking {
         BodyConfig bodyConfig = requireClientConfig(config);
         EntityBodyData.INSTANCE.put(uuid, bodyConfig); // update locally immediately, don't wait for the round trip
         ClientBodyConfigStorage.save(uuid, bodyConfig);
-        ClientPlayNetworking.send(new BodySyncUploadPacket(bodyConfig.toSyncData()));
+        if (ClientPlayNetworking.canSend(BodySyncUploadPacket.TYPE)) {
+            ClientPlayNetworking.send(new BodySyncUploadPacket(bodyConfig.toSyncData()));
+        }
     }
 
     /** Loads this Minecraft profile's local config and shares it with the joined world. */
@@ -53,8 +55,15 @@ public final class AnatomicaClientNetworking {
         if (client.player == null) {
             return;
         }
-        UUID uuid = client.player.getUUID();
-        ClientBodyConfigStorage.load(uuid).ifPresent(config -> sendLocalConfig(config));
+        loadAndSyncLocalConfig(client.player.getUUID());
+    }
+
+    public static void loadAndSyncLocalConfig(UUID uuid) {
+        BodyConfig config = ClientBodyConfigStorage.load(uuid).orElseGet(() -> EntityBodyData.INSTANCE.get(uuid));
+        EntityBodyData.INSTANCE.put(uuid, config);
+        if (ClientPlayNetworking.canSend(BodySyncUploadPacket.TYPE)) {
+            ClientPlayNetworking.send(new BodySyncUploadPacket(config.toSyncData()));
+        }
     }
 
     private static BodyConfig requireClientConfig(IBodyConfig config) {

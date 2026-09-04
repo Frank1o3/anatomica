@@ -104,7 +104,6 @@ public final class BodyRenderLayer<S extends AvatarRenderState, M extends Humano
 
         // Inner layer uses the same torso/skin texture render type without a
         // solid-color multiplier, so the texture keeps its natural colors.
-        config.innerColor();
         renderSide(poseStack, renderQueue, renderState, packedLight, model, leftLayout,
                 physics.leftEngine(), BodyAttachmentMath.forBreastSide(config, -1), renderType, 0xFFFFFFFF,
                 partialTick);

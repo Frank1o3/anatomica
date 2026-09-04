@@ -12,10 +12,12 @@ import com.frank1o3.anatomica.client.render.ModelMeshCache;
 import com.frank1o3.anatomica.client.render.ClientBodyPhysics;
 import com.frank1o3.anatomica.client.data.EntityBodyData;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
+import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.server.packs.PackType;
@@ -26,7 +28,7 @@ public class AnatomicaClient implements ClientModInitializer {
     private static KeyMapping openCustomizationScreenKey;
     private static final KeyMapping.Category CATEGORY = KeyMapping.Category
             .register(Anatomica.id("main"));
-    private static final String BINDING_KEY = Anatomica.id("open_scale_screen").toLanguageKey("key");
+    private static final String BINDING_KEY = Anatomica.id("open_customization_screen").toLanguageKey("key");
 
     @Override
     public void onInitializeClient() {
@@ -52,7 +54,16 @@ public class AnatomicaClient implements ClientModInitializer {
 
     private void registerConnectionEvents() {
         ClientPlayConnectionEvents.JOIN
-                .register((listener, sender, client) -> AnatomicaClientNetworking.loadAndSyncLocalConfig());
+                .register((listener, sender, client) -> {
+                    if (listener.getLocalGameProfile() != null) {
+                        AnatomicaClientNetworking.loadAndSyncLocalConfig(listener.getLocalGameProfile().getId());
+                    }
+                });
+        ClientEntityEvents.ENTITY_LOAD.register((entity, world) -> {
+            if (entity == Minecraft.getInstance().player) {
+                AnatomicaClientNetworking.loadAndSyncLocalConfig();
+            }
+        });
         ClientPlayConnectionEvents.DISCONNECT.register((listener, client) -> {
             ClientBodyConfigStorage.closeAll();
             EntityBodyData.INSTANCE.clear();

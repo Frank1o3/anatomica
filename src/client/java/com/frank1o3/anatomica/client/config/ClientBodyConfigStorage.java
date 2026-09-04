@@ -26,6 +26,10 @@ public final class ClientBodyConfigStorage {
     private ClientBodyConfigStorage() {
     }
 
+    public static boolean hasConfig(UUID uuid) {
+        return Files.exists(jsonFileFor(uuid)) || Files.exists(legacyFileFor(uuid));
+    }
+
     public static Optional<BodyConfig> load(UUID uuid) {
         Path jsonFile = jsonFileFor(uuid);
         Path legacyFile = legacyFileFor(uuid);

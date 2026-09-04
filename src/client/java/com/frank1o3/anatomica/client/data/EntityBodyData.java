@@ -1,6 +1,7 @@
 package com.frank1o3.anatomica.client.data;
 
 import com.frank1o3.anatomica.client.config.BodyConfig;
+import com.frank1o3.anatomica.client.config.ClientBodyConfigStorage;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -19,7 +20,7 @@ public final class EntityBodyData {
 
     private static final LoadingCache<UUID, BodyConfig> CACHE = CacheBuilder.newBuilder()
             .expireAfterAccess(EXPIRE_AFTER_ACCESS)
-            .build(CacheLoader.from(ignored -> new BodyConfig()));
+            .build(CacheLoader.from(uuid -> ClientBodyConfigStorage.load(uuid).orElseGet(BodyConfig::new)));
 
     private EntityBodyData() {
     }
@@ -29,7 +30,7 @@ public final class EntityBodyData {
     }
 
     public boolean has(UUID uuid) {
-        return CACHE.asMap().containsKey(uuid);
+        return CACHE.asMap().containsKey(uuid) || ClientBodyConfigStorage.hasConfig(uuid);
     }
 
     public void put(UUID uuid, BodyConfig config) {

@@ -61,9 +61,53 @@ public final class NodeSkinning {
 
     /** Skins every vertex of {@code vertices} against {@code engine}, in order. */
     public static Vec3[] skinAll(ModelVertex[] vertices, IPhysicsEngine engine) {
+        if (engine == null) {
+            Vec3[] out = new Vec3[vertices.length];
+            for (int i = 0; i < vertices.length; i++) {
+                out[i] = vertices[i].restPosition();
+            }
+            return out;
+        }
+
+        int count = engine.nodeCount();
+        Vec3[] nodeDeltas = new Vec3[count];
+        for (int i = 0; i < count; i++) {
+            nodeDeltas[i] = engine.interpolatedNodePosition(i).subtract(engine.nodeRestPosition(i));
+        }
+
         Vec3[] out = new Vec3[vertices.length];
         for (int i = 0; i < vertices.length; i++) {
-            out[i] = skin(vertices[i], engine);
+            ModelVertex vertex = vertices[i];
+            int[] influences = vertex.nodeInfluences();
+            float[] weights = vertex.nodeWeights();
+
+            float totalDeltaX = 0f;
+            float totalDeltaY = 0f;
+            float totalDeltaZ = 0f;
+            float totalWeight = 0f;
+
+            for (int k = 0; k < influences.length; k++) {
+                int node = influences[k];
+                float weight = weights[k];
+                if (weight <= 0f || node < 0 || node >= count) {
+                    continue;
+                }
+                Vec3 d = nodeDeltas[node];
+                totalDeltaX += d.x() * weight;
+                totalDeltaY += d.y() * weight;
+                totalDeltaZ += d.z() * weight;
+                totalWeight += weight;
+            }
+
+            if (totalWeight <= 0f) {
+                out[i] = vertex.restPosition();
+            } else {
+                float invWeight = 1f / totalWeight;
+                Vec3 rest = vertex.restPosition();
+                out[i] = new Vec3(rest.x() + totalDeltaX * invWeight,
+                        rest.y() + totalDeltaY * invWeight,
+                        rest.z() + totalDeltaZ * invWeight);
+            }
         }
         return out;
     }
