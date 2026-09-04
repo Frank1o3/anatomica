@@ -56,7 +56,7 @@ public class AnatomicaClient implements ClientModInitializer {
         ClientPlayConnectionEvents.JOIN
                 .register((listener, sender, client) -> {
                     if (listener.getLocalGameProfile() != null) {
-                        AnatomicaClientNetworking.loadAndSyncLocalConfig(listener.getLocalGameProfile().getId());
+                        AnatomicaClientNetworking.loadAndSyncLocalConfig(listener.getLocalGameProfile().id());
                     }
                 });
         ClientEntityEvents.ENTITY_LOAD.register((entity, world) -> {
