@@ -72,7 +72,7 @@ public final class AnatomicaConfig {
             entry(RIGHT_UV_LAYOUT, BodyConfig::rightUvLayout, BodyConfig::setRightUvLayout));
 
     static {
-        ConfigValueHandlers.register(UVLayout.class, new UVLayoutConfigValueHandler());
+        UVLayoutConfigValueHandler.register();
     }
 
     private AnatomicaConfig() {

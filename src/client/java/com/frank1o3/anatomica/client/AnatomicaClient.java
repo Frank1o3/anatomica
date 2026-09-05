@@ -4,6 +4,7 @@ import com.frank1o3.anatomica.Anatomica;
 import com.frank1o3.anatomica.client.gui.screen.BodyCustomizationScreen;
 import com.frank1o3.anatomica.client.networking.AnatomicaClientNetworking;
 import com.frank1o3.anatomica.client.config.ClientBodyConfigStorage;
+import com.frank1o3.anatomica.client.config.UVLayoutConfigValueHandler;
 import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.client.render.BodyPhysicsTicker;
 import com.frank1o3.anatomica.client.render.BodyArmorRenderLayer;
@@ -34,6 +35,7 @@ public class AnatomicaClient implements ClientModInitializer {
     public void onInitializeClient() {
         Anatomica.LOGGER.info("Anatomica initializing (client)");
 
+        UVLayoutConfigValueHandler.register();
         AnatomicaRegistries.registerClient();
         AnatomicaClientNetworking.register();
         registerConnectionEvents();

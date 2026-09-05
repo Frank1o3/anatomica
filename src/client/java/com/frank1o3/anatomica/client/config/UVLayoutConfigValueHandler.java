@@ -6,6 +6,7 @@ import com.frank1o3.anatomica.uv.UVQuad;
 import com.frank1o3.franklylib.config.ConfigFieldEntry;
 import com.frank1o3.franklylib.config.ConfigValueException;
 import com.frank1o3.franklylib.config.ConfigValueHandler;
+import com.frank1o3.franklylib.config.ConfigValueHandlers;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -13,7 +14,17 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /** JSON representation for the five editable faces in an {@link UVLayout}. */
-final class UVLayoutConfigValueHandler implements ConfigValueHandler<UVLayout> {
+public final class UVLayoutConfigValueHandler implements ConfigValueHandler<UVLayout> {
+
+    public static final UVLayoutConfigValueHandler INSTANCE = new UVLayoutConfigValueHandler();
+    private static volatile boolean registered = false;
+
+    public static void register() {
+        if (!registered) {
+            ConfigValueHandlers.register(UVLayout.class, INSTANCE);
+            registered = true;
+        }
+    }
 
     @Override
     public JsonElement toJson(UVLayout value) {
@@ -63,6 +74,9 @@ final class UVLayoutConfigValueHandler implements ConfigValueHandler<UVLayout> {
 
     @Override
     public UVLayout clamp(UVLayout value, ConfigFieldEntry entry) {
+        if (value == null) {
+            return entry != null && entry.id().contains("right") ? UVLayout.DEFAULT_RIGHT : UVLayout.DEFAULT_LEFT;
+        }
         return value;
     }
 

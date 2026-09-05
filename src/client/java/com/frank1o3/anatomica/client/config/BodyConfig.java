@@ -16,6 +16,10 @@ import net.minecraft.resources.Identifier;
  * profiles. Network synchronization uses {@link BodySyncData} directly.
  */
 public final class BodyConfig implements IBodyConfig {
+    static {
+        UVLayoutConfigValueHandler.register();
+    }
+
     @ConfigEntry(id = "breasts_enabled")
     private boolean breastsEnabled = AnatomicaConfig.BREASTS_ENABLED.defaultValue();
     @ConfigEntry

@@ -18,6 +18,10 @@ import java.util.UUID;
 /** Persists each local Minecraft profile's body configuration as JSON. */
 public final class ClientBodyConfigStorage {
 
+    static {
+        UVLayoutConfigValueHandler.register();
+    }
+
     private static final Path CONFIG_DIRECTORY = FabricLoader.getInstance().getConfigDir()
             .resolve(Anatomica.MOD_ID)
             .resolve("players");
@@ -62,6 +66,7 @@ public final class ClientBodyConfigStorage {
 
     private static FranklyConfigHolder<BodyConfig> holderFor(UUID uuid) {
         ensureConfigDirectory();
+        UVLayoutConfigValueHandler.register();
         return HOLDERS.computeIfAbsent(uuid, ignored -> FranklyConfigHolder
                 .builder(BodyConfig.class, BodyConfig::new)
                 .path(jsonFileFor(uuid))
