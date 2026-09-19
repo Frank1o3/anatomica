@@ -12,7 +12,6 @@ import com.frank1o3.anatomica.client.config.keys.IntConfigKey;
 import com.frank1o3.anatomica.client.config.keys.UVLayoutConfigKey;
 import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
 import com.frank1o3.anatomica.uv.UVLayout;
-import com.frank1o3.franklylib.config.ConfigValueHandlers;
 
 import net.minecraft.nbt.CompoundTag;
 

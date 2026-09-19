@@ -84,7 +84,7 @@ public final class ClientLivingEntityAdapter implements LivingEntityLike {
 
     @Override
     public float attackSwingProgress(float partialTick) {
-        return entity.getAttackAnim(partialTick);
+        return entity.getSwingAnimation(partialTick);
     }
 
     @Override

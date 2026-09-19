@@ -1,28 +1,29 @@
 package com.frank1o3.anatomica.client;
 
 import com.frank1o3.anatomica.Anatomica;
-import com.frank1o3.anatomica.client.gui.screen.BodyCustomizationScreen;
-import com.frank1o3.anatomica.client.networking.AnatomicaClientNetworking;
 import com.frank1o3.anatomica.client.config.ClientBodyConfigStorage;
 import com.frank1o3.anatomica.client.config.UVLayoutConfigValueHandler;
-import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
-import com.frank1o3.anatomica.client.render.BodyPhysicsTicker;
-import com.frank1o3.anatomica.client.render.BodyArmorRenderLayer;
-import com.frank1o3.anatomica.client.render.BodyRenderLayer;
-import com.frank1o3.anatomica.client.render.ModelMeshCache;
-import com.frank1o3.anatomica.client.render.ClientBodyPhysics;
 import com.frank1o3.anatomica.client.data.EntityBodyData;
+import com.frank1o3.anatomica.client.gui.screen.BodyCustomizationScreen;
+import com.frank1o3.anatomica.client.networking.AnatomicaClientNetworking;
+import com.frank1o3.anatomica.client.registry.AnatomicaRegistries;
+import com.frank1o3.anatomica.client.render.BodyArmorRenderLayer;
+import com.frank1o3.anatomica.client.render.BodyPhysicsTicker;
+import com.frank1o3.anatomica.client.render.BodyRenderLayer;
+import com.frank1o3.anatomica.client.render.ClientBodyPhysics;
+import com.frank1o3.anatomica.client.render.ModelMeshCache;
+import com.mojang.blaze3d.platform.InputConstants;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
-import net.minecraft.client.Minecraft;
-import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.PackType;
-import org.lwjgl.glfw.GLFW;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 
 public class AnatomicaClient implements ClientModInitializer {
 
@@ -76,7 +77,7 @@ public class AnatomicaClient implements ClientModInitializer {
     private void registerKeybind() {
         openCustomizationScreenKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 BINDING_KEY,
-                GLFW.GLFW_KEY_B,
+                InputConstants.KEY_B,
                 CATEGORY));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {

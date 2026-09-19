@@ -118,7 +118,7 @@ public final class BodyArmorRenderLayer<S extends AvatarRenderState, M extends H
                                 clothAttachment,
                                 ModelMeshCache.get(clothModel, UVLayout.DEFAULT_TORSO),
                                 new BoundMeshDeformer(clothModel, physics.clothEngine()),
-                                RenderTypes.armorEntityGlint(), packedLight, OverlayTexture.NO_OVERLAY, -1,
+                                RenderTypes.trimmedArmorGlint(), packedLight, OverlayTexture.NO_OVERLAY, -1,
                                 partialTick);
                     }
                 }
@@ -146,7 +146,7 @@ public final class BodyArmorRenderLayer<S extends AvatarRenderState, M extends H
                 FranklyAttachmentRenderer.render(poseStack, renderQueue, state, getParentModel(), attachment,
                         ModelMeshCache.get(model, side < 0 ? UVLayout.DEFAULT_LEFT : UVLayout.DEFAULT_RIGHT),
                         new BoundMeshDeformer(model, engine),
-                        RenderTypes.armorEntityGlint(), packedLight, OverlayTexture.NO_OVERLAY, -1, partialTick);
+                        RenderTypes.trimmedArmorGlint(), packedLight, OverlayTexture.NO_OVERLAY, -1, partialTick);
             }
         }
     }
