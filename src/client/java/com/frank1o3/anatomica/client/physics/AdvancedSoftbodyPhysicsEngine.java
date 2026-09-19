@@ -32,8 +32,6 @@ import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig
 import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.PHYSICS_ITERATIONS;
 import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.POSE_IMPULSE_SCALE;
 import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.POSITIVE_DEPTH_MIN;
-import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.PRESSURE_BASE;
-import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.PRESSURE_SCALE;
 import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.REACTIVITY_SCALE;
 import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.RECONSTRUCTION_BLEND;
 import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.REFERENCE_TICK_DELTA;
@@ -54,9 +52,6 @@ import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig
 import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VERTICAL_BOUND_SCALE;
 import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VERTICAL_MOTION_RESPONSE;
 import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VERTICAL_RESPONSE_SIGN;
-import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VOLUME_CORRECTION_LIMIT;
-import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VOLUME_ERROR_LIMIT;
-import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.VOLUME_SETTING_MAX;
 import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.YAW_RESPONSE_SCALE;
 import static com.frank1o3.anatomica.client.physics.AdvancedSoftbodySolverConfig.volumeTargetScale;
 
@@ -1475,98 +1470,6 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
             }
         }
         return cells;
-    }
-
-    private float totalVolume(
-            Vec3[] positions) {
-        float[] x = new float[positions.length];
-        float[] y = new float[positions.length];
-        float[] z = new float[positions.length];
-
-        for (int i = 0; i < positions.length; i++) {
-            x[i] = positions[i].x();
-            y[i] = positions[i].y();
-            z[i] = positions[i].z();
-        }
-        return totalVolume(
-                x,
-                y,
-                z);
-    }
-
-    private float totalVolume(
-            float[] x,
-            float[] y,
-            float[] z) {
-        float volume = 0.0f;
-
-        for (int[] cell : volumeCells) {
-            volume += tetrahedronVolume(
-                    cell[0],
-                    cell[1],
-                    cell[3],
-                    cell[4],
-                    x,
-                    y,
-                    z);
-            volume += tetrahedronVolume(
-                    cell[1],
-                    cell[2],
-                    cell[3],
-                    cell[6],
-                    x,
-                    y,
-                    z);
-            volume += tetrahedronVolume(
-                    cell[1],
-                    cell[3],
-                    cell[4],
-                    cell[6],
-                    x,
-                    y,
-                    z);
-            volume += tetrahedronVolume(
-                    cell[1],
-                    cell[4],
-                    cell[5],
-                    cell[6],
-                    x,
-                    y,
-                    z);
-            volume += tetrahedronVolume(
-                    cell[3],
-                    cell[4],
-                    cell[6],
-                    cell[7],
-                    x,
-                    y,
-                    z);
-        }
-        return volume;
-    }
-
-    private static float tetrahedronVolume(
-            int a,
-            int b,
-            int c,
-            int d,
-            float[] x,
-            float[] y,
-            float[] z) {
-        float abx = x[b] - x[a];
-        float aby = y[b] - y[a];
-        float abz = z[b] - z[a];
-        float acx = x[c] - x[a];
-        float acy = y[c] - y[a];
-        float acz = z[c] - z[a];
-        float adx = x[d] - x[a];
-        float ady = y[d] - y[a];
-        float adz = z[d] - z[a];
-        float determinant = abx * (acy * adz - acz * ady)
-                - aby * (acx * adz - acz * adx)
-                + abz * (acx * ady - acy * adx);
-        return Math.abs(determinant)
-                / 6.0f;
     }
 
     /*
