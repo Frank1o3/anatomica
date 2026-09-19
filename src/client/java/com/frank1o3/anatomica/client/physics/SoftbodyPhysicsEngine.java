@@ -381,7 +381,10 @@ public final class SoftbodyPhysicsEngine implements IPhysicsEngine {
         }
 
         float targetDepthScale = Mth.clamp(restVolume / currentVolume, 0.85f, 1.20f);
-        float correction = Mth.lerp(strength * 0.35f, 1.0f, targetDepthScale);
+        float correction = Mth.lerp(
+                Mth.clamp(strength * 0.35f, 0.0f, 1.0f),
+                1.0f,
+                targetDepthScale);
         for (int i = 0; i < posZ.length; i++) {
             if (!layout.fixed()[i]) {
                 posZ[i] *= correction;
