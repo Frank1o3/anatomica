@@ -118,10 +118,13 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
     private final float[] restLengths;
     private final float[] nodeMass;
 
-    /**
-     * Rest volume of the complete grid.
-     */
-    private final float restVolume;
+    /** Per-tetrahedron signed-volume constraints, solved against the current target pose. */
+    private final TetVolumeConstraints volume;
+    private final float[] invMass;
+    private final float[] poseX;
+    private final float[] poseY;
+    private final float[] poseZ;
+    private float appliedPetite = Float.NaN;
 
     /*
      * -------------------------------------------------------------------------
@@ -232,7 +235,15 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
             restLengths[i] = (float) Math.sqrt(delta.dot(delta));
         }
 
-        this.restVolume = totalVolume(layout.restPositions());
+        this.volume = new TetVolumeConstraints(volumeCells);
+        this.invMass = new float[nodeCount];
+        this.poseX = new float[nodeCount];
+        this.poseY = new float[nodeCount];
+        this.poseZ = new float[nodeCount];
+        for (int i = 0; i < nodeCount; i++) {
+            invMass[i] = inverseMass(i);
+        }
+
         this.posX = new float[nodeCount];
         this.posY = new float[nodeCount];
         this.posZ = new float[nodeCount];
@@ -308,6 +319,8 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
             reset();
             return;
         }
+
+        updateTargetPose(config.petite());
 
         /*
          * deltaTime is allowed to vary, but we never permit a pathological
@@ -409,11 +422,15 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
              * It does NOT replace the spring simulation. It stabilizes it.
              */
             for (int pbd = 0; pbd < pbdPassesPerSubstep; pbd++) {
+                volume.solve(
+                        posX,
+                        posY,
+                        posZ,
+                        invMass,
+                        Mth.lerp(config.softness(), 0.9f, 0.35f));
                 solveDistanceConstraints(
                         config,
                         substepDelta);
-                solveVolumeConstraint(
-                        config.petite());
             }
 
             /*
@@ -1105,114 +1122,6 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
      * the config field is eventually renamed.
      */
 
-    private void solveVolumeConstraint(
-            float volumeStrength) {
-        if (volumeStrength <= 0.0f
-                || restVolume <= GEOMETRY_EPSILON) {
-
-            return;
-        }
-        float currentVolume = totalVolume(
-                posX,
-                posY,
-                posZ);
-        if (currentVolume <= GEOMETRY_EPSILON) {
-            return;
-        }
-
-        /*
-         * Map the config value into a target volume modifier.
-         *
-         * The current default behavior effectively preserves rest volume while
-         * scaling how strongly the correction is applied. Advanced needs a
-         * genuine volume target so the UI can actually inflate/deflate the
-         * body rather than merely asking for "more correction".
-         *
-         * The neutral point remains the rest volume.
-         */
-        float normalized = Mth.clamp(
-                volumeStrength / VOLUME_SETTING_MAX,
-                0.0f,
-                1.0f);
-
-        /*
-         * A conservative target range keeps the solver from instantly
-         * destroying the geometry at extreme UI values.
-         */
-        float targetScale = volumeTargetScale(volumeStrength);
-        float targetVolume = restVolume
-                * targetScale;
-        float volumeError = targetVolume
-                - currentVolume;
-
-        /*
-         * Convert volume error into a normalized pressure term.
-         *
-         * Pressure is intentionally bounded. This is what stops the volume
-         * control from becoming an unlimited energy source.
-         */
-        float relativeError = volumeError
-                / Math.max(
-                        restVolume,
-                        GEOMETRY_EPSILON);
-        relativeError = Mth.clamp(
-                relativeError,
-                -VOLUME_ERROR_LIMIT,
-                VOLUME_ERROR_LIMIT);
-
-        /*
-         * The correction is applied along the chest-to-front axis because this
-         * is how the existing Anatomica grid represents its soft-body depth.
-         *
-         * PBD performs the actual geometric correction; this method only
-         * determines the pressure/volume target.
-         */
-        float pressure = relativeError
-                * (PRESSURE_BASE + normalized * PRESSURE_SCALE);
-        for (int i = 0; i < posZ.length; i++) {
-            if (layout.fixed()[i]) {
-                continue;
-            }
-            Vec3 rest = layout.restPositions()[i];
-            float depth = rest.z();
-
-            /*
-             * Back-adjacent nodes should move much less than the front nodes.
-             */
-            float zFactor = depthResponse(i);
-            float currentDepth = posZ[i];
-
-            /*
-             * Move proportionally to the node's rest depth.
-             *
-             * This makes the volume response coherent with the mesh instead
-             * of pushing every node by the same world-space amount.
-             */
-            float correction = depth * pressure * zFactor;
-            posZ[i] += correction;
-
-            /*
-             * Keep the correction itself within a conservative percentage of
-             * the current depth.
-             */
-            float maximumCorrection = Math.abs(
-                    depth)
-                    * VOLUME_CORRECTION_LIMIT;
-            posZ[i] = Mth.clamp(
-                    posZ[i],
-                    currentDepth
-                            - maximumCorrection,
-                    currentDepth
-                            + maximumCorrection);
-        }
-    }
-
-    /*
-     * -------------------------------------------------------------------------
-     * Velocity reconstruction
-     * -------------------------------------------------------------------------
-     */
-
     private void reconstructVelocities(
             float deltaTime,
             float[] previousStepX,
@@ -1462,8 +1371,8 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
                  * Preserve the existing minimum depth / maximum extension
                  * envelope.
                  */
-                float minimumZ = rest.z() * MIN_DEPTH_SCALE;
-                float maximumZ = rest.z() * MAX_DEPTH_SCALE;
+                float minimumZ = poseZ[i] * MIN_DEPTH_SCALE;
+                float maximumZ = poseZ[i] * MAX_DEPTH_SCALE;
                 posZ[i] = Mth.clamp(
                         posZ[i],
                         minimumZ,
@@ -1683,6 +1592,35 @@ public final class AdvancedSoftbodyPhysicsEngine implements IPhysicsEngine {
             return 0.0f;
         }
         return 1.0f / mass;
+    }
+
+    /**
+     * Rebuilds the target pose whenever the volume setting changes.
+     */
+    private void updateTargetPose(float petite) {
+        if (petite == appliedPetite) {
+            return;
+        }
+        appliedPetite = petite;
+        Vec3[] rest = layout.restPositions();
+        float scale = volumeTargetScale(petite);
+
+        for (int i = 0; i < rest.length; i++) {
+            poseX[i] = rest[i].x();
+            poseY[i] = rest[i].y();
+            poseZ[i] = layout.fixed()[i] ? rest[i].z() : rest[i].z() * scale;
+        }
+
+        for (int c = 0; c < constraintPairs.length; c++) {
+            int a = constraintPairs[c][0];
+            int b = constraintPairs[c][1];
+            float dx = poseX[a] - poseX[b];
+            float dy = poseY[a] - poseY[b];
+            float dz = poseZ[a] - poseZ[b];
+            restLengths[c] = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
+        volume.setTargetPose(poseX, poseY, poseZ);
     }
 
     private void clearForceBuffers() {
